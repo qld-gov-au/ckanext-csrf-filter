@@ -18,7 +18,7 @@ import time
 import six
 from six.moves.urllib.parse import quote, urlparse
 
-from ckan.plugins.toolkit import abort
+from ckan.plugins import toolkit
 from ckan.common import config, request, g
 import request_helpers
 
@@ -149,7 +149,7 @@ def _csrf_fail(message):
     """ Abort the request and return an error when there is a problem with the CSRF token.
     """
     LOG.error(message)
-    abort(403, "Your form submission could not be validated")
+    toolkit.abort(403, "Your form submission could not be validated")
 
 
 def _is_logged_in():
