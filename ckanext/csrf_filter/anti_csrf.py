@@ -15,10 +15,10 @@ from logging import getLogger
 import random
 import re
 import time
-import urllib
 import six
+from six.moves.urllib.parse import quote, urlparse
 
-from ckan import plugins
+from ckan.plugins.toolkit import abort
 from ckan.common import config, request, g
 import request_helpers
 
@@ -67,7 +67,7 @@ this should be significantly lower than the expiry age.
 TOKEN_RENEWAL_AGE = 60 * config.get('ckanext.csrf_filter.token_renewal_minutes', 10)
 
 
-_site_url = six.moves.urllib.parse.urlparse(config.get('ckan.site_url', ''))
+_site_url = urlparse(config.get('ckan.site_url', ''))
 if _site_url.scheme == 'https':
     _secure_cookies = True
 else:
@@ -149,7 +149,7 @@ def _csrf_fail(message):
     """ Abort the request and return an error when there is a problem with the CSRF token.
     """
     LOG.error(message)
-    plugins.toolkit.abort(403, "Your form submission could not be validated")
+    abort(403, "Your form submission could not be validated")
 
 
 def _is_logged_in():
@@ -240,7 +240,7 @@ def _get_user():
 def _get_safe_username():
     """ Retrieve the current username with unsafe characters URL-encoded.
     """
-    return urllib.quote(_get_user().name, safe='')
+    return quote(_get_user().name, safe='')
 
 
 def _get_secret_key():
