@@ -135,11 +135,11 @@ class TestAntiCsrfFilter(unittest.TestCase):
              },
         ]
         for case in html_cases:
-            injected_html = anti_csrf.apply_token(case['input'])
+            injected_html = anti_csrf.apply_token(case['input'], None)
             print("Expecting exactly one token in {}".format(injected_html))
             self.assertEqual(injected_html,
                              case['expected'].format(anti_csrf.TOKEN_FIELD_NAME, STUB_TOKEN))
-            self.assertEqual(injected_html, anti_csrf.apply_token(injected_html))
+            self.assertEqual(injected_html, anti_csrf.apply_token(injected_html, None))
 
 
 if __name__ == '__main__':
