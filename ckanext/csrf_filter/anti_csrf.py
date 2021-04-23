@@ -149,7 +149,7 @@ def _csrf_fail(message):
     """ Abort the request and return an error when there is a problem with the CSRF token.
     """
     LOG.error(message)
-    plugins.abort(403, "Your form submission could not be validated")
+    plugins.toolkit.abort(403, "Your form submission could not be validated")
 
 
 def _is_logged_in():
