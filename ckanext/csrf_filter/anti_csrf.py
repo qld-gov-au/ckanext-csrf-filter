@@ -253,7 +253,7 @@ def _get_secret_key():
 def _get_digest(message):
     """ Generate a secure (unforgeable) hash of the provided data.
     """
-    return hmac.HMAC(_get_secret_key(), message, hashlib.sha512).hexdigest()
+    return hmac.HMAC(six.binary_type(_get_secret_key()), six.binary_type(message), hashlib.sha512).hexdigest()
 
 
 def _set_response_token_cookie(token, response):
