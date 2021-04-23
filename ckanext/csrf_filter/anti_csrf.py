@@ -111,8 +111,8 @@ def is_valid_token(token):
     if 'hash' not in token_values:
         return False
 
-    expected_hmac = six.ensure_text(_get_digest(token_values['message']))
-    if not hmac.compare_digest(expected_hmac, six.ensure_text(token_values['hash'])):
+    expected_hmac = six.binary_type(_get_digest(token_values['message']))
+    if not hmac.compare_digest(expected_hmac, six.binary_type(token_values['hash'])):
         return False
 
     timestamp = token_values['timestamp']
