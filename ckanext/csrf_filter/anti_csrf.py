@@ -262,7 +262,7 @@ def _set_response_token_cookie(token, response):
     response.set_cookie(TOKEN_FIELD_NAME, token, secure=_secure_cookies, httponly=True)
 
 
-def create_response_token(response):
+def create_response_token():
     """ Generate an unforgeable CSRF token. The format of this token is:
     hash!timestamp/nonce/username
     where the hash is a secure HMAC of the other values plus a secret key.

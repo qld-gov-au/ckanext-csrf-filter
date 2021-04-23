@@ -20,7 +20,7 @@ setup(
     install_requires=[],
     entry_points="""
     [ckan.plugins]
-    csrf=\
+    csrf_filter=\
 ckanext.csrf_filter.plugin:CSRFFilterPlugin
     """,
 )
