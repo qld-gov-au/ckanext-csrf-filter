@@ -59,10 +59,12 @@ your CKAN config file (by default the config file is located at
 Configuration
 =============
 
-Either `ckanext.csrf_filter.secret_key` or `beaker.session.secret` must be present
-to provide the secret key used in generating secure hashes.
+A server secret must be present to generate secure hashes.
+This will be taken from one of the following, in order:
 
-If both are present, `ckanext.csrf_filter.secret_key` will take precedence.
+- `ckanext.csrf_filter.secret_key`
+- `beaker.session.secret`
+- The Flask app `secret_key` value
 
     ckanext.csrf_filter.secret_key = aaaabbbbccccddddeeeeffff00001111
     beaker.session.secret = aBcDeFgHiJkLmNoPqRsTuVwXyZ0123456789
@@ -74,11 +76,12 @@ never in a production environment.
 Optional
 --------
 
-    # Maximum age of a token cookie. Tokens older than this will be rejected.
-    ckanext.csrf_filter.token_expiry_age
+    # Maximum age of a token cookie, in minutes.
+    # Tokens older than this will be rejected.
+    ckanext.csrf_filter.token_expiry_minutes
 
     # Tokens older than this will be replaced with new ones on the next response.
-    ckanext.csrf_filter.token_rotation_age
+    ckanext.csrf_filter.token_rotation_minutes
 
 
 Testing

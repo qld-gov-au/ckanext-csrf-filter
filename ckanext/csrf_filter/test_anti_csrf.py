@@ -169,6 +169,10 @@ class TestAntiCsrfFilter(unittest.TestCase):
         self.assertRaises(ValueError, anti_csrf.configure, config)
 
         # secret HMAC key
+        config['flask.secret_key'] = 'flask_key'
+        anti_csrf.configure(config)
+        self._check_config('flask_key')
+
         config['beaker.session.secret'] = 'beaker_key'
         anti_csrf.configure(config)
         self._check_config('beaker_key')

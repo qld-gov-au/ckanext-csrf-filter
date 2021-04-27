@@ -49,6 +49,7 @@ class CSRFFilterPlugin(SingletonPlugin):
     def configure(self, config):
         """ Provide configuration (eg max token age) to the CSRF filter.
         """
+        self.config = config
         anti_csrf.configure(config)
 
     # IRoutes
@@ -98,5 +99,8 @@ class CSRFFilterPlugin(SingletonPlugin):
         """
         if hasattr(app, 'request_class'):
             app.request_class = CSRFAwareRequest
+            if app.secret_key:
+                self.config['flask.secret_key'] = app.secret_key
+                anti_csrf.configure(self.config)
 
         return app

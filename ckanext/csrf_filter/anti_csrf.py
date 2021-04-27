@@ -70,11 +70,14 @@ def configure(config):
         LOG.warning("Site %s is not secure! CSRF tokens may be exposed!", site_url)
         secure_cookies = False
 
-    key_fields = ['ckanext.csrf_filter.secret_key', 'beaker.session.secret']
+    key_fields = ['ckanext.csrf_filter.secret_key',
+                  'beaker.session.secret',
+                  'flask.secret_key']
     secret_key = None
     for field in key_fields:
         secret_key = config.get(field)
         if secret_key:
+            LOG.info("Obtained secret key from %s", field)
             break
     else:
         raise ValueError("No secret key provided for CSRF tokens; populate one of %s",
