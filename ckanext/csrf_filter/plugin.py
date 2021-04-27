@@ -4,12 +4,13 @@
 
 from logging import getLogger
 
-from ckan import plugins
+from ckan.plugins import toolkit, SingletonPlugin, implements, \
+    IConfigurable, IRoutes, IBlueprint, IMiddleware
 
 import anti_csrf
 
 
-if plugins.toolkit.check_ckan_version(min_version='2.8.0'):
+if toolkit.check_ckan_version(min_version='2.8.0'):
     from flask import Blueprint, Request
     from werkzeug.datastructures import MultiDict, ImmutableMultiDict
 
@@ -33,14 +34,22 @@ if plugins.toolkit.check_ckan_version(min_version='2.8.0'):
 LOG = getLogger(__name__)
 
 
-class CSRFFilterPlugin(plugins.SingletonPlugin):
+class CSRFFilterPlugin(SingletonPlugin):
     """ Inject CSRF tokens into HTML responses,
     and validate them on applicable requests.
     """
-    plugins.implements(plugins.IRoutes, inherit=True)
-    if plugins.toolkit.check_ckan_version(min_version='2.8.0'):
-        plugins.implements(plugins.IBlueprint, inherit=True)
-        plugins.implements(plugins.IMiddleware, inherit=True)
+    implements(IConfigurable, inherit=True)
+    implements(IRoutes, inherit=True)
+    if toolkit.check_ckan_version(min_version='2.8.0'):
+        implements(IBlueprint, inherit=True)
+        implements(IMiddleware, inherit=True)
+
+    # IConfigurable
+
+    def configure(self, config):
+        """ Provide configuration (eg max token age) to the CSRF filter.
+        """
+        anti_csrf.configure(config)
 
     # IRoutes
 
@@ -68,13 +77,14 @@ class CSRFFilterPlugin(plugins.SingletonPlugin):
         def check_csrf():
             """ Abort invalid Flask requests based on CSRF token.
             """
-            anti_csrf.check_csrf()
+            if not anti_csrf.check_csrf():
+                toolkit.abort(403, "Your form submission could not be validated")
 
         @blueprint.after_app_request
         def set_csrf_token(response):
             """ Apply a CSRF token to all response bodies.
             """
-            anti_csrf.apply_token(response.data, response)
+            anti_csrf.apply_token(response)
             return response
 
         return blueprint

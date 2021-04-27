@@ -4,11 +4,12 @@ based on the Double Submit Cookie pattern,
 www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)_Prevention_Cheat_Sheet#Double_Submit_Cookie
 
 To apply the filter, use 'apply_token' to inject tokens into Flask responses,
-and call 'check_csrf' on all requests.
+and call 'check_csrf' on all requests to determine whether they are valid.
 
 Applying the filter to Pylons requires monkey-patching core functions.
 """
 
+import base64
 import hashlib
 import hmac
 from logging import getLogger
@@ -16,10 +17,8 @@ import random
 import re
 import time
 import six
-from six.moves.urllib.parse import quote, urlparse
+from six.moves.urllib.parse import urlparse
 
-from ckan.plugins import toolkit
-from ckan.common import config, request, g
 import request_helpers
 
 LOG = getLogger(__name__)
@@ -40,7 +39,7 @@ POST_FORM = re.compile(
 """The format of the token HTML field.
 """
 TOKEN_VALIDATION_PATTERN = re.compile(
-    r'^[0-9a-z]+![0-9]+/[0-9]+/[-_a-z0-9%]+$',
+    r'^[0-9a-z]+![0-9]+/[0-9]+/[-_a-z0-9%+=]+$',
     re.IGNORECASE)
 API_URL = re.compile(r'^/api\b.*')
 CONFIRM_MODULE_PATTERN = r'data-module=["\']confirm-action["\']'
@@ -56,23 +55,28 @@ CONFIRM_LINK_REVERSED = re.compile(r'(<a [^>]*{})(["\'][^>]*{})'.format(
     HREF_URL_PATTERN, CONFIRM_MODULE_PATTERN),
     re.IGNORECASE | re.MULTILINE)
 
-""" Tokens older than this will be rejected.
-"""
-TOKEN_EXPIRY_AGE = 60 * config.get('ckanext.csrf_filter.token_expiry_minutes', 30)
 
-""" Tokens older than this will be replaced with new ones on the next response.
-To minimise the risk of legitimate users presenting an expired token,
-this should be significantly lower than the expiry age.
-"""
-TOKEN_RENEWAL_AGE = 60 * config.get('ckanext.csrf_filter.token_renewal_minutes', 10)
+def configure(config):
+    """ Configure global values for the filter.
+    """
+    global secure_cookies
+    global secret_key
+    global token_expiry_age
+    global token_renewal_age
 
+    site_url = urlparse(config.get('ckan.site_url', ''))
+    if site_url.scheme == 'https':
+        secure_cookies = True
+    else:
+        LOG.warning("Site %s is not secure! CSRF tokens may be exposed!", site_url)
+        secure_cookies = False
 
-_site_url = urlparse(config.get('ckan.site_url', ''))
-if _site_url.scheme == 'https':
-    _secure_cookies = True
-else:
-    LOG.warn("Site %s is not secure! CSRF tokens may be exposed!", _site_url)
-    _secure_cookies = False
+    secret_key = config.get('ckanext.csrf_filter.secret_key', config.get('beaker.session.secret'))
+    if not secret_key:
+        raise ValueError("No secret key provided for CSRF tokens; populate %s or %s",
+                         'ckanext.csrf_filter.secret_key', 'beaker.session.secret')
+    token_expiry_age = 60 * config.get('ckanext.csrf_filter.token_expiry_minutes', 30)
+    token_renewal_age = 60 * config.get('ckanext.csrf_filter.token_renewal_minutes', 10)
 
 
 # -------------
@@ -118,7 +122,7 @@ def is_valid_token(token):
     timestamp = token_values['timestamp']
     token_age = int(time.time()) - timestamp
     # allow tokens up to 'max_age' minutes old
-    if token_age < 0 or token_age > TOKEN_EXPIRY_AGE:
+    if token_age < 0 or token_age > token_expiry_age:
         return False
 
     return token_values['username'] == _get_safe_username()
@@ -137,19 +141,12 @@ def is_soft_expired(token):
     timestamp = token_values['timestamp']
     token_age = int(time.time()) - timestamp
 
-    return token_age > TOKEN_RENEWAL_AGE
+    return token_age > token_renewal_age
 
 
 # --------------------
 # Check request tokens
 # --------------------
-
-
-def _csrf_fail(message):
-    """ Abort the request and return an error when there is a problem with the CSRF token.
-    """
-    LOG.error(message)
-    toolkit.abort(403, "Your form submission could not be validated")
 
 
 def _is_logged_in():
@@ -159,7 +156,7 @@ def _is_logged_in():
     return _get_user()
 
 
-def is_request_exempt():
+def is_request_exempt(request):
     """ Determine whether a request needs to provide a token.
     HTTP methods without side effects (GET, HEAD, OPTIONS) are exempt,
     as are API calls (which should instead provide an API key).
@@ -173,11 +170,10 @@ def get_cookie_token():
     """ Retrieve the token included in the request cookies, if it exists
     and is valid.
     """
-    if TOKEN_FIELD_NAME in request.cookies:
-        token = request.cookies.get(TOKEN_FIELD_NAME)
-        if is_valid_token(token):
-            LOG.debug("Obtaining token from cookie")
-            return token
+    token = request_helpers.get_cookie(TOKEN_FIELD_NAME)
+    if is_valid_token(token):
+        LOG.debug("Obtaining token from cookie")
+        return token
 
     return None
 
@@ -196,7 +192,8 @@ def get_submitted_form_token():
 
     if post_tokens:
         if len(post_tokens) > 1:
-            _csrf_fail("More than one CSRF token in form submission")
+            LOG.error("More than one CSRF token in form submission")
+            return None
         else:
             token = post_tokens[0]
     else:
@@ -206,10 +203,12 @@ def get_submitted_form_token():
             # this is needed for the 'confirm-action' JavaScript module
             token = get_tokens[0]
         else:
-            _csrf_fail("Missing CSRF token in form submission")
+            LOG.error("Missing CSRF token in form submission")
+            return None
 
     if not is_valid_token(token):
-        _csrf_fail("Invalid CSRF token format")
+        LOG.error("Invalid CSRF token format")
+        return None
 
     request_helpers.scoped_attrs()['submitted_token'] = token
     request_helpers.delete_param(TOKEN_FIELD_NAME)
@@ -218,12 +217,17 @@ def get_submitted_form_token():
 
 def check_csrf():
     """ Check whether the request passes (or is exempt from) CSRF checks.
+    Returns True if valid or exempt, False if invalid.
     """
-    if not is_request_exempt():
-        cookie_token = get_cookie_token()
-        if cookie_token is None or cookie_token.strip() == "" \
-                or cookie_token != get_submitted_form_token():
-            _csrf_fail("Could not match cookie token with form token")
+    if is_request_exempt(request_helpers.get_request()):
+        return True
+    cookie_token = get_cookie_token()
+    if cookie_token and cookie_token.strip() != ""\
+            and cookie_token == get_submitted_form_token():
+        return True
+    else:
+        LOG.error("Could not match cookie token with form token")
+        return False
 
 
 # ------------------------
@@ -234,32 +238,27 @@ def check_csrf():
 def _get_user():
     """ Retrieve the current user object.
     """
+    from ckan.common import g
     return g.userobj
 
 
 def _get_safe_username():
-    """ Retrieve the current username with unsafe characters URL-encoded.
+    """ Retrieve a with unsafe characters URL-encoded.
     """
-    return quote(_get_user().name, safe='')
-
-
-def _get_secret_key():
-    """ Retrieve the secret key to use in generating secure hashes.
-    Currently this is the Beaker session secret.
-    """
-    return config.get('beaker.session.secret')
+    return six.ensure_text(base64.urlsafe_b64encode(six.ensure_binary(
+        request_helpers.get_cookie('auth_tkt', '')))) or 'anonymous'
 
 
 def _get_digest(message):
     """ Generate a secure (unforgeable) hash of the provided data.
     """
-    return hmac.HMAC(six.ensure_binary(_get_secret_key()), six.ensure_binary(message), hashlib.sha512).hexdigest()
+    return hmac.HMAC(six.ensure_binary(secret_key), six.ensure_binary(message), hashlib.sha512).hexdigest()
 
 
 def _set_response_token_cookie(token, response):
     """ Add a generated token cookie to the HTTP response.
     """
-    response.set_cookie(TOKEN_FIELD_NAME, token, secure=_secure_cookies, httponly=True)
+    response.set_cookie(TOKEN_FIELD_NAME, token, secure=secure_cookies, httponly=True)
 
 
 def create_response_token():
@@ -298,15 +297,12 @@ def get_response_token(response):
     return token
 
 
-def apply_token(html, response):
+def insert_token(html, token):
     """ Rewrite HTML to insert tokens if applicable.
-    If a new token is generated, it will be added to 'response' as a cookie.
     """
     if not html or not _is_logged_in() or (
             not POST_FORM.search(html) and not CONFIRM_MODULE.search(html)):
         return html
-
-    token = get_response_token(response)
 
     def insert_form_token(form_match):
         """ Inject a token into a POST form. """
@@ -329,6 +325,19 @@ def apply_token(html, response):
     html = POST_FORM.sub(insert_form_token, html)
     html = CONFIRM_LINK.sub(insert_link_token, html)
     html = CONFIRM_LINK_REVERSED.sub(insert_link_token, html)
-    if getattr(response, 'data', None):
-        response.data = html
     return html
+
+
+def apply_token(response):
+    """ Rewrite HTML to insert tokens if applicable.
+    If a new token is generated, it will be added to 'response' as a cookie.
+    """
+    html = getattr(response, 'data', None)
+    if not html:
+        return response
+
+    token = get_response_token(response)
+    html = insert_token(html, token)
+    if hasattr(response, 'data'):
+        response.data = html
+    return response

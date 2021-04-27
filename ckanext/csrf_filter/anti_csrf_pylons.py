@@ -9,6 +9,7 @@ Hook the CSRF filter into Pylons.
 """
 from ckan.common import response
 from ckan.lib import base
+from ckan.plugins import toolkit
 
 import anti_csrf
 
@@ -20,7 +21,8 @@ RAW_BEFORE = base.BaseController.__before__
 def _render_jinja(template_name, extra_vars=None):
     """ Wrap the Jinja rendering function to inject tokens on HTML responses.
     """
-    return anti_csrf.apply_token(RAW_RENDER_JINJA(template_name, extra_vars), response)
+    token = anti_csrf.get_response_token(response)
+    return anti_csrf.insert_token(RAW_RENDER_JINJA(template_name, extra_vars), token)
 
 
 def _before_controller(obj, action, **params):
@@ -28,7 +30,8 @@ def _before_controller(obj, action, **params):
     """
     RAW_BEFORE(obj, action)
 
-    anti_csrf.check_csrf()
+    if not anti_csrf.check_csrf():
+        toolkit.abort(403, "Your form submission could not be validated")
 
 
 def intercept():
