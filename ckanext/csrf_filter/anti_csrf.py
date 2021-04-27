@@ -9,7 +9,6 @@ and call 'check_csrf' on all requests to determine whether they are valid.
 Applying the filter to Pylons requires monkey-patching core functions.
 """
 
-import base64
 import hashlib
 import hmac
 from logging import getLogger
@@ -17,7 +16,7 @@ import random
 import re
 import time
 import six
-from six.moves.urllib.parse import urlparse
+from six.moves.urllib.parse import quote, urlparse
 
 import request_helpers
 
@@ -250,8 +249,7 @@ def _get_user():
 def _get_safe_username():
     """ Retrieve a with unsafe characters URL-encoded.
     """
-    return six.ensure_text(base64.urlsafe_b64encode(six.ensure_binary(
-        request_helpers.get_cookie('auth_tkt', '')))) or 'anonymous'
+    return quote(_get_user().name, safe='')
 
 
 def _get_digest(message):
@@ -338,7 +336,7 @@ def apply_token(response):
     If a new token is generated, it will be added to 'response' as a cookie.
     """
     html = getattr(response, 'data', None)
-    if not html:
+    if not html or not _is_logged_in():
         return response
 
     token = get_response_token(response)

@@ -110,7 +110,7 @@ class TestAntiCsrfFilter(unittest.TestCase):
 
         import time
         print("Generating old token at {}".format(time.time()))
-        old_values = "{}/{}/{}".format(int(time.time()) - 11 * 60, 123, 'dW5pdC10ZXN0')
+        old_values = "{}/{}/{}".format(int(time.time()) - 11 * 60, 123, 'unit-test')
         old_token = "{}!{}".format(anti_csrf._get_digest(old_values), old_values)
 
         print("Testing soft-expired token {}".format(old_token))
