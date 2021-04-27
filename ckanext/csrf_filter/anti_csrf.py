@@ -87,7 +87,7 @@ def configure(config):
 def _read_token_values(token):
     """ Parse the provided token string. Invalid tokens are parsed as empty dicts.
     """
-    if not TOKEN_VALIDATION_PATTERN.match(token):
+    if not token or not TOKEN_VALIDATION_PATTERN.match(token):
         return {}
 
     parts = token.split('!', 1)
