@@ -71,10 +71,15 @@ def configure(config):
         LOG.warning("Site %s is not secure! CSRF tokens may be exposed!", site_url)
         secure_cookies = False
 
-    secret_key = config.get('ckanext.csrf_filter.secret_key', config.get('beaker.session.secret'))
-    if not secret_key:
-        raise ValueError("No secret key provided for CSRF tokens; populate %s or %s",
-                         'ckanext.csrf_filter.secret_key', 'beaker.session.secret')
+    key_fields = ['ckanext.csrf_filter.secret_key', 'beaker.session.secret']
+    secret_key = None
+    for field in key_fields:
+        secret_key = config.get(field)
+        if secret_key:
+            break
+    else:
+        raise ValueError("No secret key provided for CSRF tokens; populate one of %s",
+                         key_fields)
     token_expiry_age = 60 * config.get('ckanext.csrf_filter.token_expiry_minutes', 30)
     token_renewal_age = 60 * config.get('ckanext.csrf_filter.token_renewal_minutes', 10)
 

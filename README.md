@@ -59,7 +59,17 @@ your CKAN config file (by default the config file is located at
 Configuration
 =============
 
-No configuration entries are necessary.
+Either `ckanext.csrf_filter.secret_key` or `beaker.session.secret` must be present
+to provide the secret key used in generating secure hashes.
+
+If both are present, `ckanext.csrf_filter.secret_key` will take precedence.
+
+    ckanext.csrf_filter.secret_key = aaaabbbbccccddddeeeeffff00001111
+    beaker.session.secret = aBcDeFgHiJkLmNoPqRsTuVwXyZ0123456789
+
+The value of `ckan.site_url` will be used to determine whether token cookies
+should have the 'Secure' flag. NB Insecure cookies should only be used in testing,
+never in a production environment.
 
 Optional
 --------
@@ -69,6 +79,7 @@ Optional
 
     # Tokens older than this will be replaced with new ones on the next response.
     ckanext.csrf_filter.token_rotation_age
+
 
 Testing
 =======

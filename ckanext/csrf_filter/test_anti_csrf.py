@@ -162,6 +162,42 @@ class TestAntiCsrfFilter(unittest.TestCase):
                              case['expected'].format(anti_csrf.TOKEN_FIELD_NAME, STUB_TOKEN))
             self.assertEqual(injected_html, anti_csrf.insert_token(injected_html, STUB_TOKEN))
 
+    def test_required_config(self):
+        """ Tests that the filter is configured correctly from inputs
+        """
+        config = {}
+        self.assertRaises(ValueError, anti_csrf.configure, config)
+
+        # secret HMAC key
+        config['beaker.session.secret'] = 'beaker_key'
+        anti_csrf.configure(config)
+        self._check_config('beaker_key')
+
+        config['ckanext.csrf_filter.secret_key'] = 'secret_key'
+        anti_csrf.configure(config)
+        self._check_config('secret_key')
+
+        # cookie 'Secure' flag
+        config['ckan.site_url'] = 'https://unit-test'
+        anti_csrf.configure(config)
+        self._check_config('secret_key', secure_cookies=True)
+
+        # cookie ages
+        config['ckanext.csrf_filter.token_expiry_minutes'] = 60
+        config['ckanext.csrf_filter.token_renewal_minutes'] = 30
+        anti_csrf.configure(config)
+        self._check_config('secret_key', secure_cookies=True,
+                           token_expiry_age=3600, token_renewal_age=1800)
+
+    def _check_config(self, secret_key, secure_cookies=False,
+                      token_expiry_age=1800, token_renewal_age=600):
+        """ Check that the config values of the CSRF filter are as expected.
+        """
+        self.assertEqual(anti_csrf.secret_key, secret_key)
+        self.assertEqual(anti_csrf.secure_cookies, secure_cookies)
+        self.assertEqual(anti_csrf.token_expiry_age, token_expiry_age)
+        self.assertEqual(anti_csrf.token_renewal_age, token_renewal_age)
+
 
 if __name__ == '__main__':
     unittest.main()
