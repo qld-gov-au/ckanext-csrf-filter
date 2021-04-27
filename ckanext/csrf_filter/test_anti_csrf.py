@@ -65,6 +65,8 @@ class TestAntiCsrfFilter(unittest.TestCase):
             "username": "someuser"
         }
         bad_tokens = [
+            None,
+            '',
             'aaa',
             good_token.replace('/', '!'),
             NUMBER_FIELDS.sub(r'\1a/\2/', good_token),
