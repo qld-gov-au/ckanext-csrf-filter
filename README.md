@@ -78,10 +78,12 @@ Optional
 
     # Maximum age of a token cookie, in minutes.
     # Tokens older than this will be rejected.
-    ckanext.csrf_filter.token_expiry_minutes
+    # Default 30 minutes.
+    ckanext.csrf_filter.token_expiry_minutes = 30
 
     # Tokens older than this will be replaced with new ones on the next response.
-    ckanext.csrf_filter.token_rotation_minutes
+    # Default 10 minutes.
+    ckanext.csrf_filter.token_rotation_minutes = 10
 
 
 Testing
