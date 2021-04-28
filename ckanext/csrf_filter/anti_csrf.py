@@ -179,7 +179,6 @@ def get_cookie_token():
     """
     token = request_helpers.get_cookie(TOKEN_FIELD_NAME)
     if is_valid_token(token):
-        LOG.debug("Obtaining token from cookie")
         return token
 
     return None
@@ -289,10 +288,8 @@ def get_response_token(response):
     """
     # ensure that the same token is used when a page is assembled from pieces
     if 'response_token' in request_helpers.scoped_attrs():
-        LOG.debug("Reusing response token from request attributes")
         token = request_helpers.scoped_attrs()['response_token']
     else:
-        LOG.debug("Obtaining token from cookie")
         token = get_cookie_token()
         if not token or is_soft_expired(token):
             LOG.debug("No valid token found; making new token")
