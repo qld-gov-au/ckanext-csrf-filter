@@ -191,8 +191,8 @@ def get_submitted_form_token():
     However, for compatibility with 'confirm-action' links,
     it is also acceptable to provide the token as a query string parameter.
     """
-    if 'submitted_token' in request_helpers.scoped_attrs():
-        return request_helpers.scoped_attrs()['submitted_token']
+    if TOKEN_FIELD_NAME in request_helpers.scoped_attrs():
+        return request_helpers.scoped_attrs()[TOKEN_FIELD_NAME]
 
     post_tokens = request_helpers.get_post_params(TOKEN_FIELD_NAME)
 
@@ -216,7 +216,7 @@ def get_submitted_form_token():
         LOG.error("Invalid CSRF token format")
         return None
 
-    request_helpers.scoped_attrs()['submitted_token'] = token
+    request_helpers.scoped_attrs()[TOKEN_FIELD_NAME] = token
     request_helpers.delete_param(TOKEN_FIELD_NAME)
     return token
 
