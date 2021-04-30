@@ -59,15 +59,12 @@ your CKAN config file (by default the config file is located at
 Configuration
 =============
 
-A server secret must be present to generate secure hashes.
+A cryptographically unguessable server secret must be present to generate secure hashes.
 This will be taken from one of the following, in order:
 
-- `ckanext.csrf_filter.secret_key`
-- `beaker.session.secret`
-- The Flask app `secret_key` value
-
-    ckanext.csrf_filter.secret_key = aaaabbbbccccddddeeeeffff00001111
-    beaker.session.secret = aBcDeFgHiJkLmNoPqRsTuVwXyZ0123456789
+- `ckanext.csrf_filter.secret_key` (if you wish to provide your own key)
+- `beaker.session.secret` (normally present within CKAN apps out of the box)
+- The Flask app `secret_key` value (for future-proofing and easier conversion to non-CKAN applications)
 
 The value of `ckan.site_url` will be used to determine whether token cookies
 should have the 'Secure' flag. NB Insecure cookies should only be used in testing,
@@ -111,4 +108,4 @@ To run the tests:
         python ckanext/csrf_filter/test_anti_csrf.py
         ```
 
-    1. Run ``nosetests``
+    1. Run ``nosetests`` or ``pytest``.
