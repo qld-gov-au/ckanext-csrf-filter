@@ -85,6 +85,7 @@ class CSRFFilterPlugin(SingletonPlugin):
         def set_csrf_token(response):
             """ Apply a CSRF token to all response bodies.
             """
+            response.direct_passthrough = False
             anti_csrf.apply_token(response)
             return response
 
