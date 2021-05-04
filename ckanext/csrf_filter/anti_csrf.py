@@ -157,7 +157,7 @@ def is_soft_expired(token):
 # --------------------
 
 
-def _is_logged_in():
+def is_logged_in():
     """ Determine whether the user is currently logged in and thus needs a token.
     TODO Also require a token on login/logout forms.
     """
@@ -169,7 +169,7 @@ def is_request_exempt(request):
     HTTP methods without side effects (GET, HEAD, OPTIONS) are exempt,
     as are API calls (which should instead provide an API key).
     """
-    return not _is_logged_in() \
+    return not is_logged_in() \
         or API_URL.match(request.path) \
         or request.method in {'GET', 'HEAD', 'OPTIONS'}
 
@@ -311,7 +311,7 @@ def get_response_token(response):
 def insert_token(html, token):
     """ Rewrite HTML to insert tokens if applicable.
     """
-    if not html or not _is_logged_in() or (
+    if not html or not is_logged_in() or (
             not POST_FORM.search(html) and not CONFIRM_MODULE.search(html)):
         return html
 
@@ -344,7 +344,7 @@ def apply_token(response):
     If a new token is generated, it will be added to 'response' as a cookie.
     """
     html = getattr(response, 'data', None)
-    if not html or not _is_logged_in():
+    if not html or not is_logged_in():
         return response
 
     token = get_response_token(response)
