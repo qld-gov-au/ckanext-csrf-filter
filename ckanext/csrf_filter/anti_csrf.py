@@ -44,6 +44,7 @@ API_URL = re.compile(r'^/api\b.*')
 CONFIRM_MODULE_PATTERN = r'data-module=["\']confirm-action["\']'
 CONFIRM_MODULE = re.compile(CONFIRM_MODULE_PATTERN)
 HREF_URL_PATTERN = r'href=["\']([^"\']+)'
+ANONYMOUS_USERNAME = '__anonymous__'
 
 # We need to edit confirm-action links, which get intercepted by JavaScript,
 # regardless of which order their 'data-module' and 'href' attributes appear.
@@ -251,7 +252,14 @@ def _get_user():
 def _get_safe_username():
     """ Retrieve a with unsafe characters URL-encoded.
     """
-    return quote(_get_user().name, safe='')
+    userobj = _get_user()
+    if userobj and userobj.name:
+        if userobj.name == ANONYMOUS_USERNAME:
+            raise ValueError("User account is named %s!",
+                             ANONYMOUS_USERNAME)
+        return quote(userobj.name, safe='')
+    else:
+        return ANONYMOUS_USERNAME
 
 
 def _get_digest(message):
