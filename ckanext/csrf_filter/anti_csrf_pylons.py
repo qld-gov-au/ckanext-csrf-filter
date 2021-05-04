@@ -21,8 +21,11 @@ RAW_BEFORE = base.BaseController.__before__
 def _render_jinja(template_name, extra_vars=None):
     """ Wrap the Jinja rendering function to inject tokens on HTML responses.
     """
-    token = anti_csrf.get_response_token(response)
-    return anti_csrf.insert_token(RAW_RENDER_JINJA(template_name, extra_vars), token)
+    html = RAW_RENDER_JINJA(template_name, extra_vars)
+    if anti_csrf.is_logged_in():
+        token = anti_csrf.get_response_token(response)
+        html = anti_csrf.insert_token(html, token)
+    return html
 
 
 def _before_controller(obj, action, **params):

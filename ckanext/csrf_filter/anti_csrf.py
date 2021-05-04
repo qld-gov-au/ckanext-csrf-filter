@@ -44,6 +44,7 @@ API_URL = re.compile(r'^/api\b.*')
 CONFIRM_MODULE_PATTERN = r'data-module=["\']confirm-action["\']'
 CONFIRM_MODULE = re.compile(CONFIRM_MODULE_PATTERN)
 HREF_URL_PATTERN = r'href=["\']([^"\']+)'
+ANONYMOUS_USERNAME = '__anonymous__'
 
 # We need to edit confirm-action links, which get intercepted by JavaScript,
 # regardless of which order their 'data-module' and 'href' attributes appear.
@@ -156,7 +157,7 @@ def is_soft_expired(token):
 # --------------------
 
 
-def _is_logged_in():
+def is_logged_in():
     """ Determine whether the user is currently logged in and thus needs a token.
     TODO Also require a token on login/logout forms.
     """
@@ -168,7 +169,7 @@ def is_request_exempt(request):
     HTTP methods without side effects (GET, HEAD, OPTIONS) are exempt,
     as are API calls (which should instead provide an API key).
     """
-    return not _is_logged_in() \
+    return not is_logged_in() \
         or API_URL.match(request.path) \
         or request.method in {'GET', 'HEAD', 'OPTIONS'}
 
@@ -251,7 +252,14 @@ def _get_user():
 def _get_safe_username():
     """ Retrieve a with unsafe characters URL-encoded.
     """
-    return quote(_get_user().name, safe='')
+    userobj = _get_user()
+    if userobj and userobj.name:
+        if userobj.name == ANONYMOUS_USERNAME:
+            raise ValueError("User account is named %s!",
+                             ANONYMOUS_USERNAME)
+        return quote(userobj.name, safe='')
+    else:
+        return ANONYMOUS_USERNAME
 
 
 def _get_digest(message):
@@ -303,7 +311,7 @@ def get_response_token(response):
 def insert_token(html, token):
     """ Rewrite HTML to insert tokens if applicable.
     """
-    if not html or not _is_logged_in() or (
+    if not html or not is_logged_in() or (
             not POST_FORM.search(html) and not CONFIRM_MODULE.search(html)):
         return html
 
@@ -336,7 +344,7 @@ def apply_token(response):
     If a new token is generated, it will be added to 'response' as a cookie.
     """
     html = getattr(response, 'data', None)
-    if not html or not _is_logged_in():
+    if not html or not is_logged_in():
         return response
 
     token = get_response_token(response)
