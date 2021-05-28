@@ -170,8 +170,8 @@ def _is_login_url(request):
         return path.startswith(getattr(
             request_helper.get_environ()[u'repoze.who.plugins'][u'friendlyform'],
             u'login_handler_path', None))
-    except (KeyError, AttributeError) as e:
-        LOG.warning("Unable to retrieve FriendlyForm login handler URL: %s", e)
+    except (KeyError, AttributeError):
+        # not necessarily an error, we might just not use FriendlyForm
         return False
 
 
