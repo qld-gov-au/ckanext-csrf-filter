@@ -158,11 +158,28 @@ def is_soft_expired(token):
 # --------------------
 
 
+def _is_login_url(request):
+    """ Determine whether the user is visiting a login-related URL
+    that should be protected with a token.
+    """
+    request_helper = RequestHelper(request)
+    path = request_helper.get_path()
+    if LOGIN_URL.match(path):
+        return True
+    try:
+        return path.startswith(getattr(
+            request_helper.get_environ()[u'repoze.who.plugins'][u'friendlyform'],
+            u'login_handler_path', None))
+    except (KeyError, AttributeError) as e:
+        LOG.warning("Unable to retrieve FriendlyForm login handler URL: %s", e)
+        return False
+
+
 def is_logged_in(request=None):
     """ Determine whether the user is currently logged in and thus needs a token.
     TODO Also require a token on login/logout forms.
     """
-    return _get_user() or LOGIN_URL.match(RequestHelper(request).get_path())
+    return _get_user() or _is_login_url(request)
 
 
 def _is_request_exempt(request):

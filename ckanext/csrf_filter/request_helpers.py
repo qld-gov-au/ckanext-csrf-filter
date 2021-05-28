@@ -22,6 +22,11 @@ class RequestHelper():
         """
         return self.request.method
 
+    def get_environ(self):
+        """ Get the WebOb environment dict.
+        """
+        return self.request.environ
+
     def get_cookie(self, field_name, default=None):
         """ Get the value of a cookie, or the default value if not present.
         """
