@@ -7,11 +7,34 @@ import re
 import unittest
 
 import anti_csrf
-import request_helpers
 import six
 
 NUMBER_FIELDS = re.compile(r'(![0-9]+)/([0-9]+)/')
 STUB_TOKEN = 'some_token_or_other'
+
+
+html_cases = [
+    {"input": '''<form method="POST">
+             Form contents here</form>''',
+     "expected": '''<form method="POST"><input type="hidden" name="{}" value="{}"/>
+             Form contents here</form>'''
+     },
+    {"input": '''<a data-module="confirm-action" href="/some/path">
+             Click here</a>''',
+     "expected": '''<a data-module="confirm-action" href="/some/path?{}={}">
+             Click here</a>'''
+     },
+    {"input": '''<a data-module="confirm-action" href="/some/path?foo=baz">
+             Click here</a>''',
+     "expected": '''<a data-module="confirm-action" href="/some/path?foo=baz&{}={}">
+             Click here</a>'''
+     },
+    {"input": '''<a href="/some/path" data-module="confirm-action">
+             Click here</a>''',
+     "expected": '''<a href="/some/path?{}={}" data-module="confirm-action">
+             Click here</a>'''
+     },
+]
 
 
 class MockUser(object):
@@ -37,16 +60,16 @@ class MockRequest(object):
         self.path = path
 
 
-def mock_objects(username='unit-test'):
+def mock_objects(username=None):
     """ Monkey-patch necessary functions in the CSRF filter to imitate core CKAN.
     """
     anti_csrf.configure({
         'ckanext.csrf_filter.secret_key': 'secret',
         'ckan.site_url': 'https://unit-test'})
-    anti_csrf._get_user = lambda: MockUser(username)
-    mock_request = MockRequest(method='', path='', cookies={'auth_tkt': username})
-    request_helpers.get_request = lambda: mock_request
-    request_helpers.scoped_attrs()['response_token'] = STUB_TOKEN
+    if username:
+        anti_csrf._get_user = lambda: MockUser(username)
+    else:
+        anti_csrf._get_user = lambda: None
 
 
 class TestAntiCsrfFilter(unittest.TestCase):
@@ -130,37 +153,37 @@ class TestAntiCsrfFilter(unittest.TestCase):
         self.assertFalse(anti_csrf.is_valid_token(bad_token))
 
     def test_inject_token(self):
-        """ Test that tokens are correctly injected into HTML.
+        """ Test that tokens are correctly injected into HTML when logged in.
         """
-        mock_objects()
-        html_cases = [
-            {"input": '''<form method="POST">
-                     Form contents here</form>''',
-             "expected": '''<form method="POST"><input type="hidden" name="{}" value="{}"/>
-                     Form contents here</form>'''
-             },
-            {"input": '''<a data-module="confirm-action" href="/some/path">
-                     Click here</a>''',
-             "expected": '''<a data-module="confirm-action" href="/some/path?{}={}">
-                     Click here</a>'''
-             },
-            {"input": '''<a data-module="confirm-action" href="/some/path?foo=baz">
-                     Click here</a>''',
-             "expected": '''<a data-module="confirm-action" href="/some/path?foo=baz&{}={}">
-                     Click here</a>'''
-             },
-            {"input": '''<a href="/some/path" data-module="confirm-action">
-                     Click here</a>''',
-             "expected": '''<a href="/some/path?{}={}" data-module="confirm-action">
-                     Click here</a>'''
-             },
-        ]
+        mock_objects('unit-test')
         for case in html_cases:
             injected_html = anti_csrf.insert_token(case['input'], STUB_TOKEN)
             print("Expecting exactly one token in {}".format(injected_html))
             self.assertEqual(injected_html,
                              case['expected'].format(anti_csrf.TOKEN_FIELD_NAME, STUB_TOKEN))
             self.assertEqual(injected_html, anti_csrf.insert_token(injected_html, STUB_TOKEN))
+
+    def test_inject_token_on_login_form(self):
+        """ Test that tokens are correctly injected into login form.
+        """
+        mock_objects()
+        request = MockRequest(method='', path='/user/login', cookies={'auth_tkt': 'unit-test'})
+        for case in html_cases:
+            injected_html = anti_csrf.insert_token(case['input'], STUB_TOKEN, request=request)
+            print("Expecting exactly one token in {}".format(injected_html))
+            self.assertEqual(injected_html,
+                             case['expected'].format(anti_csrf.TOKEN_FIELD_NAME, STUB_TOKEN))
+            self.assertEqual(injected_html, anti_csrf.insert_token(injected_html, STUB_TOKEN, request=request))
+
+    def test_not_inject_token_when_logged_out(self):
+        """ Test that tokens are not injected when not logged in.
+        """
+        mock_objects()
+        request = MockRequest(method='', path='/foo', cookies={'auth_tkt': 'unit-test'})
+        for case in html_cases:
+            injected_html = anti_csrf.insert_token(case['input'], STUB_TOKEN, request=request)
+            print("Expecting no token in {}".format(injected_html))
+            self.assertEqual(injected_html, case['input'])
 
     def test_required_config(self):
         """ Tests that the filter is configured correctly from inputs

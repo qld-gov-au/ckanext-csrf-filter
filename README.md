@@ -50,6 +50,15 @@ To install ``ckanext-csrf-filter``:
 your CKAN config file (by default the config file is located at
 ``/etc/ckan/default/production.ini``).
 
+1. Optional: To prevent [Login CSRF](https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html#login-csrf),
+replace the FriendlyForm plugin in `who.ini` with a token-aware version:
+
+    ```
+    [plugin:friendlyform]
+    #use = repoze.who.plugins.friendlyform:FriendlyFormPlugin
+    use = ckanext.csrf_filter.token_protected_friendlyform:TokenProtectedFriendlyFormPlugin
+    ```
+
 1. Restart CKAN. Eg if you've deployed CKAN with Apache on Ubuntu:
 
     ```
