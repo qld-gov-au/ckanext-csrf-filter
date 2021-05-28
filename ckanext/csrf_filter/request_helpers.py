@@ -3,53 +3,65 @@
 """
 
 
-def get_request():
-    from ckan.common import request
-    return request
+class RequestHelper():
 
+    def __init__(self, request=None):
+        if request:
+            self.request = request
+        else:
+            import ckan.common
+            self.request = ckan.common.request
 
-def get_cookie(field_name, default=None):
-    """ Get the value of a cookie, or the default value if not present.
-    """
-    return get_request().cookies.get(field_name, default)
+    def get_path(self):
+        """ Get the request path, without query string.
+        """
+        return self.request.path
 
+    def get_method(self):
+        """ Get the request method, eg HEAD, GET, POST.
+        """
+        return self.request.method
 
-def get_post_params(field_name):
-    """ Retrieve a list of all POST parameters with the specified name
-    for the current request.
+    def get_cookie(self, field_name, default=None):
+        """ Get the value of a cookie, or the default value if not present.
+        """
+        return self.request.cookies.get(field_name, default)
 
-    This uses 'request.POST' for Pylons and 'request.form' for Flask.
-    """
-    if hasattr(get_request(), 'form'):
-        return get_request().form.getlist(field_name)
-    else:
-        return get_request().POST.getall(field_name)
+    def get_post_params(self, field_name):
+        """ Retrieve a list of all POST parameters with the specified name
+        for the current request.
 
+        This uses 'request.POST' for Pylons and 'request.form' for Flask.
+        """
+        if hasattr(self.request, 'form'):
+            return self.request.form.getlist(field_name)
+        else:
+            return self.request.POST.getall(field_name)
 
-def get_query_params(field_name):
-    """ Retrieve a list of all GET parameters with the specified name
-    for the current request.
+    def get_query_params(self, field_name):
+        """ Retrieve a list of all GET parameters with the specified name
+        for the current request.
 
-    This uses 'request.GET' for Pylons and 'request.args' for Flask.
-    """
-    if hasattr(get_request(), 'args'):
-        return get_request().args.getlist(field_name)
-    else:
-        return get_request().GET.getall(field_name)
+        This uses 'request.GET' for Pylons and 'request.args' for Flask.
+        """
+        if hasattr(self.request, 'args'):
+            return self.request.args.getlist(field_name)
+        else:
+            return self.request.GET.getall(field_name)
 
+    def delete_param(self, field_name):
+        """ Remove the parameter with the specified name from the current
+        request. This requires the request parameters to be mutable.
+        """
+        for collection_name in ['args', 'form', 'GET', 'POST']:
+            collection = getattr(self.request, collection_name, {})
+            if field_name in collection:
+                del collection[field_name]
 
-def delete_param(field_name):
-    """ Remove the parameter with the specified name from the current
-    request. This requires the request parameters to be mutable.
-    """
-    for collection_name in ['args', 'form', 'GET', 'POST']:
-        collection = getattr(get_request(), collection_name, {})
-        if field_name in collection:
-            del collection[field_name]
-
-
-def scoped_attrs():
-    """ Returns a mutable dictionary of attributes that exist in the
-    scope of the current request, and will vanish afterward.
-    """
-    return get_request().environ['webob.adhoc_attrs']
+    def scoped_attrs(self):
+        """ Returns a mutable dictionary of attributes that exist in the
+        scope of the current request, and will vanish afterward.
+        """
+        if 'webob.adhoc_attrs' not in self.request.environ:
+            self.request.environ['webob.adhoc_attrs'] = {}
+        return self.request.environ['webob.adhoc_attrs']
