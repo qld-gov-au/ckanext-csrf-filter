@@ -176,8 +176,8 @@ def _is_login_url(request):
 
 
 def is_logged_in(request=None):
-    """ Determine whether the user is currently logged in and thus needs a token.
-    TODO Also require a token on login/logout forms.
+    """ Determine whether the user is logged in, or about to log in,
+    and thus needs a token.
     """
     return _get_user() or _is_login_url(request)
 
