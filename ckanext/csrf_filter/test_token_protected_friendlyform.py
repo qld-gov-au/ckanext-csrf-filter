@@ -10,21 +10,14 @@ import token_protected_friendlyform
 import six
 
 
-def mock_objects():
-    """ Monkey-patch necessary functions in the CSRF filter to imitate core CKAN.
-    """
-    anti_csrf.configure({
-        'ckanext.csrf_filter.secret_key': 'secret',
-        'ckan.site_url': 'https://unit-test'})
-    anti_csrf._get_user = lambda: None
-
-
 class TestAntiCsrfFilter(unittest.TestCase):
     """ Test our anti-CSRF filter with mock CKAN objects.
     """
 
     def _setUp(self):
-        mock_objects()
+        anti_csrf.configure({
+            'ckanext.csrf_filter.secret_key': 'secret',
+            'ckan.site_url': 'https://localhost/unit-test'})
         self.plugin = token_protected_friendlyform.TokenProtectedFriendlyFormPlugin(
             login_form_url="/user/login", login_handler_path="/login_generic",
             post_login_url="/user/logged_in", logout_handler_path="/user/logout",
