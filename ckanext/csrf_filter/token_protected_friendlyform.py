@@ -20,12 +20,19 @@ class TokenProtectedFriendlyFormPlugin(friendlyform.FriendlyFormPlugin):
     def identify(self, environ):
         """ Check for a valid CSRF token before allowing login.
         """
-        path_info = environ['PATH_INFO']
+        if not self._check_csrf(environ):
+            LOG.warning("Unable to validate CSRF token on login")
+            return None
+        return super(TokenProtectedFriendlyFormPlugin, self).identify(environ)
 
+    def _check_csrf(self, environ):
+        """ Determine whether the current request passes CSRF checks.
+        """
+        path_info = environ['PATH_INFO']
         if path_info == self.login_handler_path:
             request = Request(environ, charset=self.charset)
             LOG.debug("Checking for CSRF token on path %s", path_info)
-            if not anti_csrf.check_csrf(request):
-                LOG.warning("Unable to validate CSRF token on login")
-                return None
-        return super(TokenProtectedFriendlyFormPlugin, self).identify(environ)
+            return anti_csrf.check_csrf(request)
+        else:
+            LOG.debug("Skipping CSRF check on path %s", path_info)
+        return True

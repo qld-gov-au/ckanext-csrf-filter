@@ -266,7 +266,10 @@ def _get_user():
     """ Retrieve the current user object.
     """
     from ckan.common import g
-    return getattr(g, 'userobj', None)
+    if 'userobj' in dir(g):
+        return g.userobj
+    else:
+        return None
 
 
 def _get_safe_username():
