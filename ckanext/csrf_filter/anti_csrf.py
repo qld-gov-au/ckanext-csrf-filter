@@ -267,7 +267,7 @@ def _get_user():
     """
     from ckan.common import g
     if 'userobj' in dir(g):
-        return g['userobj']
+        return g.userobj
     else:
         return None
 
