@@ -33,6 +33,4 @@ class TokenProtectedFriendlyFormPlugin(friendlyform.FriendlyFormPlugin):
             request = Request(environ, charset=self.charset)
             LOG.debug("Checking for CSRF token on path %s", path_info)
             return anti_csrf.check_csrf(request)
-        else:
-            LOG.debug("Skipping CSRF check on path %s", path_info)
         return True
