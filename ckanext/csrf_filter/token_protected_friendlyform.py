@@ -6,7 +6,7 @@ from logging import getLogger
 from repoze.who.plugins import friendlyform
 from webob import Request
 
-import anti_csrf
+from ckanext.csrf_filter import anti_csrf
 
 LOG = getLogger(__name__)
 

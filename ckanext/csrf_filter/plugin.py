@@ -7,7 +7,7 @@ from logging import getLogger
 from ckan.plugins import toolkit, SingletonPlugin, implements, \
     IConfigurable, IRoutes, IBlueprint, IMiddleware
 
-import anti_csrf
+from ckanext.csrf_filter import anti_csrf
 
 
 if toolkit.check_ckan_version(min_version='2.8.0'):
@@ -58,7 +58,7 @@ class CSRFFilterPlugin(SingletonPlugin):
         """ Monkey-patch Pylons after routing is set up.
         """
         try:
-            import anti_csrf_pylons
+            from ckanext.csrf_filter import anti_csrf_pylons
             anti_csrf_pylons.intercept()
         except Exception:
             LOG.warn("Unable to load Pylons support. Pylons routes will not be protected.")

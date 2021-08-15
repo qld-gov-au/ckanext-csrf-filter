@@ -18,7 +18,7 @@ import time
 import six
 from six.moves.urllib.parse import quote, urlparse
 
-from request_helpers import RequestHelper
+from ckanext.csrf_filter.request_helpers import RequestHelper
 
 LOG = getLogger(__name__)
 
