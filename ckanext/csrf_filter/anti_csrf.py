@@ -372,7 +372,7 @@ def apply_token(response, request=None):
         return response
 
     token = get_response_token(response)
-    html = insert_token(html, token)
+    html = insert_token(six.ensure_text(html), token)
     if hasattr(response, 'data'):
-        response.data = html
+        response.data = six.ensure_binary(html)
     return response
