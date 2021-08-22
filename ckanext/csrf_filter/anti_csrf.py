@@ -368,6 +368,9 @@ def apply_token(response, request=None):
     If a new token is generated, it will be added to 'response' as a cookie.
     """
     try:
+        if not response.charset:
+            # Provide default charset
+            response.charset = 'utf-8'
         # If the response data can't be decoded from bytes to str
         # we can't insert a token
         html = response.get_data(as_text=True)
