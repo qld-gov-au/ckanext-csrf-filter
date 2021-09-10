@@ -357,7 +357,7 @@ def insert_token(html, token, request=None):
             separator = '?'
         return link_match.group(1) + separator + TOKEN_FIELD_NAME + '=' + token + link_match.group(3)
 
-    html = POST_FORM.sub(insert_form_token, html)
+    html = POST_FORM.sub(insert_form_token, six.text_type(html))
     html = CONFIRM_LINK.sub(insert_link_token, html)
     html = CONFIRM_LINK_REVERSED.sub(insert_link_token, html)
     return html
