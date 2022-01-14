@@ -367,7 +367,16 @@ def apply_token(response, request=None):
     """ Rewrite HTML to insert tokens if applicable.
     If a new token is generated, it will be added to 'response' as a cookie.
     """
-    html = getattr(response, 'data', None)
+    try:
+        if not response.charset:
+            # Provide default charset
+            response.charset = 'utf-8'
+        # If the response data can't be decoded from bytes to str
+        # we can't insert a token
+        html = response.get_data(as_text=True)
+    except UnicodeDecodeError:
+        html = None
+
     if not html or not is_logged_in(request):
         return response
 
