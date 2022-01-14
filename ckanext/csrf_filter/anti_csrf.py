@@ -357,7 +357,7 @@ def insert_token(html, token, request=None):
             separator = '?'
         return link_match.group(1) + separator + TOKEN_FIELD_NAME + '=' + token + link_match.group(3)
 
-    html = POST_FORM.sub(insert_form_token, html)
+    html = POST_FORM.sub(insert_form_token, six.ensure_text(html))
     html = CONFIRM_LINK.sub(insert_link_token, html)
     html = CONFIRM_LINK_REVERSED.sub(insert_link_token, html)
     return html
@@ -367,7 +367,16 @@ def apply_token(response, request=None):
     """ Rewrite HTML to insert tokens if applicable.
     If a new token is generated, it will be added to 'response' as a cookie.
     """
-    html = getattr(response, 'data', None)
+    try:
+        if not response.charset:
+            # Provide default charset
+            response.charset = 'utf-8'
+        # If the response data can't be decoded from bytes to str
+        # we can't insert a token
+        html = response.get_data(as_text=True)
+    except UnicodeDecodeError:
+        html = None
+
     if not html or not is_logged_in(request):
         return response
 
