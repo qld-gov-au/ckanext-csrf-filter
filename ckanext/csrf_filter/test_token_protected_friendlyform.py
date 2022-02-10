@@ -5,8 +5,8 @@
 
 import unittest
 
-import anti_csrf
-import token_protected_friendlyform
+from ckanext.csrf_filter import anti_csrf
+from ckanext.csrf_filter import token_protected_friendlyform
 import six
 
 

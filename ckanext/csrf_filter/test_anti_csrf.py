@@ -6,7 +6,7 @@
 import re
 import unittest
 
-import anti_csrf
+from ckanext.csrf_filter import anti_csrf
 import six
 
 NUMBER_FIELDS = re.compile(r'(![0-9]+)/([0-9]+)/')

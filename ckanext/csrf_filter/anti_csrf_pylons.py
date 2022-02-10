@@ -11,7 +11,7 @@ from ckan.common import response
 from ckan.lib import base
 from ckan.plugins import toolkit
 
-import anti_csrf
+from ckanext.csrf_filter import anti_csrf
 
 
 RAW_RENDER_JINJA = base.render_jinja2
