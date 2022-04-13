@@ -11,7 +11,7 @@ from ckan.common import response
 from ckan.lib import base
 from ckan.plugins import toolkit
 
-import anti_csrf
+from ckanext.csrf_filter import anti_csrf
 
 
 RAW_RENDER_JINJA = base.render_jinja2
@@ -22,7 +22,9 @@ def _render_jinja(template_name, extra_vars=None):
     """ Wrap the Jinja rendering function to inject tokens on HTML responses.
     """
     html = RAW_RENDER_JINJA(template_name, extra_vars)
-    if anti_csrf.is_logged_in():
+    if template_name.endswith('.html') \
+            and 'set_cookie' in dir(response) \
+            and anti_csrf.is_logged_in():
         token = anti_csrf.get_response_token(response)
         html = anti_csrf.insert_token(html, token)
     return html
