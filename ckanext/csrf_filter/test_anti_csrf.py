@@ -164,7 +164,7 @@ class TestAntiCsrfFilter(unittest.TestCase):
             'SERVER_PROTOCOL': 'HTTP/1.1',
             'HTTP_COOKIE': token_expression,
             'wsgi.url_scheme': 'http',
-            'wsgi.input': six.BytesIO(token_expression),
+            'wsgi.input': six.StringIO(token_expression),
             'CONTENT_LENGTH': len(token_expression),
             'wsgi.errors': six.BytesIO(),
         }
