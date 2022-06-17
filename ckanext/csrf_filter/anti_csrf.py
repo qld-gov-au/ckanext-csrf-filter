@@ -40,7 +40,7 @@ POST_FORM = re.compile(
 TOKEN_VALIDATION_PATTERN = re.compile(
     r'^[0-9a-z]+![0-9]+/[0-9]+/[-_a-z0-9%+=]+$',
     re.IGNORECASE)
-API_URL = re.compile(r'^/api\b.*')
+API_URL = re.compile(r'^/+api/.*')
 LOGIN_URL = re.compile(r'^(/user)?/log(ged_)?in(_generic)?')
 CONFIRM_MODULE_PATTERN = r'data-module=["\']confirm-action["\']'
 CONFIRM_MODULE = re.compile(CONFIRM_MODULE_PATTERN)
