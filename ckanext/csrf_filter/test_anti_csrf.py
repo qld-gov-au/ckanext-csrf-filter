@@ -5,6 +5,7 @@
 
 import re
 import unittest
+from webob import Request
 
 from ckanext.csrf_filter import anti_csrf
 import six
@@ -151,6 +152,24 @@ class TestAntiCsrfFilter(unittest.TestCase):
         self.assertTrue(anti_csrf.is_valid_token(good_token))
         print("Testing wrong user token '{}'".format(bad_token))
         self.assertFalse(anti_csrf.is_valid_token(bad_token))
+
+        # test with real Request object
+        token_expression = 'token=' + good_token
+        environ = {
+            'REQUEST_METHOD': 'POST',
+            'PATH_INFO': '/',
+            'CONTENT_TYPE': 'application/x-www-form-urlencoded',
+            'SERVER_NAME': 'localhost',
+            'SERVER_PORT': '80',
+            'SERVER_PROTOCOL': 'HTTP/1.1',
+            'HTTP_COOKIE': token_expression,
+            'wsgi.url_scheme': 'http',
+            'wsgi.input': six.BytesIO(six.ensure_binary(token_expression)),
+            'CONTENT_LENGTH': len(token_expression),
+            'wsgi.errors': six.BytesIO(),
+        }
+        request = Request(environ)
+        self.assertTrue(anti_csrf.check_csrf(request))
 
     def test_inject_token(self):
         """ Test that tokens are correctly injected into HTML when logged in.
