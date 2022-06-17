@@ -40,6 +40,9 @@ POST_FORM = re.compile(
 TOKEN_VALIDATION_PATTERN = re.compile(
     r'^[0-9a-z]+![0-9]+/[0-9]+/[-_a-z0-9%+=/]+$',
     re.IGNORECASE)
+ENCODED_TOKEN_VALIDATION_PATTERN = re.compile(
+    r'^[0-9a-z]+![0-9]+/[0-9]+/[-_a-z0-9%+=]+$',
+    re.IGNORECASE)
 API_URL = re.compile(r'^/+api/.*')
 LOGIN_URL = re.compile(r'^(/user)?/log(ged_)?in(_generic)?')
 CONFIRM_MODULE_PATTERN = r'data-module=["\']confirm-action["\']'
@@ -120,6 +123,8 @@ def _read_token_values(token):
 
 
 def _ensure_token_encoded(token):
+    if ENCODED_TOKEN_VALIDATION_PATTERN.match(token):
+        return token
     token_parts = _read_token_values(token)
     return token_parts['hash'] + '!' + token_parts['message']
 
