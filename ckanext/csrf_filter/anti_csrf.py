@@ -107,7 +107,7 @@ def _read_token_values(token):
     # limiting to 2 means that even if a username contains a slash, it won't cause an extra split
     message_parts = message.split('/', 2)
     username = message_parts[2]
-    encoded_username = quote(message_parts[2], safe='%')
+    encoded_username = quote(username, safe='%')
     if username != encoded_username:
         username = encoded_username
         message_parts[2] = username
