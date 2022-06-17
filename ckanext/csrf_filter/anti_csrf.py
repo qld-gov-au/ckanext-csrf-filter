@@ -38,7 +38,7 @@ POST_FORM = re.compile(
 """The format of the token HTML field.
 """
 TOKEN_VALIDATION_PATTERN = re.compile(
-    r'^[0-9a-z]+![0-9]+/[0-9]+/[-_a-z0-9%+=]+$',
+    r'^[0-9a-z]+![0-9]+/[0-9]+/[-_a-z0-9%+=/]+$',
     re.IGNORECASE)
 API_URL = re.compile(r'^/+api/.*')
 LOGIN_URL = re.compile(r'^(/user)?/log(ged_)?in(_generic)?')
@@ -103,14 +103,25 @@ def _read_token_values(token):
     message = parts[1]
     # limiting to 2 means that even if a username contains a slash, it won't cause an extra split
     message_parts = message.split('/', 2)
+    username = message_parts[2]
+    encoded_username = quote(message_parts[2], safe='%')
+    if username != encoded_username:
+        username = encoded_username
+        message_parts[2] = username
+        message = '/'.join(message_parts)
 
     return {
         "message": message,
         "hash": parts[0],
         "timestamp": int(message_parts[0]),
         "nonce": int(message_parts[1]),
-        "username": message_parts[2]
+        "username": username
     }
+
+
+def _ensure_token_encoded(token):
+    token_parts = _read_token_values(token)
+    return token_parts['hash'] + '!' + token_parts['message']
 
 
 def is_valid_token(token):
@@ -237,6 +248,7 @@ def _get_submitted_form_token(request):
         LOG.error("Invalid CSRF token format")
         return None
 
+    token = _ensure_token_encoded(token)
     request_helper.scoped_attrs()[TOKEN_FIELD_NAME] = token
     request_helper.delete_param(TOKEN_FIELD_NAME)
     return token
