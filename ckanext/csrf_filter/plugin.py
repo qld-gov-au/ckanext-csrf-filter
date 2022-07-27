@@ -79,7 +79,7 @@ class CSRFFilterPlugin(SingletonPlugin):
             """ Abort invalid Flask requests based on CSRF token.
             """
             if not anti_csrf.check_csrf():
-                toolkit.abort(403, "Your form submission could not be validated")
+                return toolkit.abort(403, "Your form submission could not be validated")
 
         @blueprint.after_app_request
         def set_csrf_token(response):

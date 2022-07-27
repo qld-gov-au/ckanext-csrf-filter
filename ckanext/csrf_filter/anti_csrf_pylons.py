@@ -36,7 +36,7 @@ def _before_controller(obj, action, **params):
     RAW_BEFORE(obj, action)
 
     if not anti_csrf.check_csrf():
-        toolkit.abort(403, "Your form submission could not be validated")
+        return toolkit.abort(403, "Your form submission could not be validated")
 
 
 def intercept():
