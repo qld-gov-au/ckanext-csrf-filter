@@ -3,7 +3,10 @@
 """
 
 from logging import getLogger
-from repoze.who.plugins import friendlyform
+try:
+    from ckan.lib.repoze_plugins.friendly_form import FriendlyFormPlugin
+except ImportError:
+    from repoze.who.plugins.friendlyform import FriendlyFormPlugin
 from webob import Request
 
 from ckanext.csrf_filter import anti_csrf
@@ -11,7 +14,7 @@ from ckanext.csrf_filter import anti_csrf
 LOG = getLogger(__name__)
 
 
-class TokenProtectedFriendlyFormPlugin(friendlyform.FriendlyFormPlugin):
+class TokenProtectedFriendlyFormPlugin(FriendlyFormPlugin):
     """ Extends the FriendlyFormPlugin to validate CSRF tokens before logging in.
 
     Not currently compatible with other FriendlyForm subclasses.
