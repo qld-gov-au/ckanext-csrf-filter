@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-version = '0.0.1-SNAPSHOT'
+version = '1.1.6'
 
 setup(
     name='ckanext-csrf-filter',
