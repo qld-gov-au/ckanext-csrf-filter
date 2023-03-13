@@ -10,7 +10,7 @@ from ckan.plugins import implements, toolkit
 from ckanext.csrf_filter import anti_csrf
 
 
-if toolkit.check_ckan_version(min_version='2.8.0'):
+if toolkit.check_ckan_version('2.8'):
     from flask import Blueprint, Request
     from werkzeug.datastructures import MultiDict, ImmutableMultiDict
 
