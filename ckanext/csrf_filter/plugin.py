@@ -4,13 +4,13 @@
 
 from logging import getLogger
 
-from ckan.plugins import toolkit, SingletonPlugin, implements, \
-    IConfigurable, IRoutes, IBlueprint, IMiddleware
+from ckan import plugins
+from ckan.plugins import implements, toolkit
 
 from ckanext.csrf_filter import anti_csrf
 
 
-if toolkit.check_ckan_version(min_version='2.8.0'):
+if toolkit.check_ckan_version('2.8'):
     from flask import Blueprint, Request
     from werkzeug.datastructures import MultiDict, ImmutableMultiDict
 
@@ -34,15 +34,16 @@ if toolkit.check_ckan_version(min_version='2.8.0'):
 LOG = getLogger(__name__)
 
 
-class CSRFFilterPlugin(SingletonPlugin):
+class CSRFFilterPlugin(plugins.SingletonPlugin):
     """ Inject CSRF tokens into HTML responses,
     and validate them on applicable requests.
     """
-    implements(IConfigurable, inherit=True)
-    implements(IRoutes, inherit=True)
+    implements(plugins.IConfigurable, inherit=True)
+    if not toolkit.check_ckan_version('2.9'):
+        implements(plugins.IRoutes, inherit=True)
     if toolkit.check_ckan_version(min_version='2.8.0'):
-        implements(IBlueprint, inherit=True)
-        implements(IMiddleware, inherit=True)
+        implements(plugins.IBlueprint, inherit=True)
+        implements(plugins.IMiddleware, inherit=True)
 
     # IConfigurable
 

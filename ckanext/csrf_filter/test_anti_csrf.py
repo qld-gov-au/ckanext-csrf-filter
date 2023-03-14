@@ -4,11 +4,15 @@
 '''
 
 import re
+import six
 import unittest
-from webob import Request
 
 from ckanext.csrf_filter import anti_csrf
-import six
+
+try:
+    from ckanext.csrf_filter.plugin import CSRFAwareRequest as Request
+except Exception:
+    from webob import Request
 
 NUMBER_FIELDS = re.compile(r'(![0-9]+)/([0-9]+)/')
 STUB_TOKEN = 'some_token_or_other'
