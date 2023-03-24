@@ -8,6 +8,7 @@ from ckan import plugins
 from ckan.plugins import implements, toolkit
 
 from ckanext.csrf_filter import anti_csrf
+from ckanext.csrf_filter.request_helpers import RequestHelper
 
 
 if toolkit.check_ckan_version('2.8'):
@@ -39,6 +40,7 @@ class CSRFFilterPlugin(plugins.SingletonPlugin):
     and validate them on applicable requests.
     """
     implements(plugins.IConfigurable, inherit=True)
+    implements(plugins.IAuthenticator, inherit=True)
     if not toolkit.check_ckan_version('2.9'):
         implements(plugins.IRoutes, inherit=True)
     if toolkit.check_ckan_version(min_version='2.8.0'):
@@ -52,6 +54,13 @@ class CSRFFilterPlugin(plugins.SingletonPlugin):
         """
         self.config = config
         anti_csrf.configure(config)
+
+    # IAuthenticator
+
+    def login(self):
+        request = RequestHelper()
+        request.get_environ()['__no_cache__'] = True
+        return None
 
     # IRoutes
 

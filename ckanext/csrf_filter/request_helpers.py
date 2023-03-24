@@ -9,8 +9,8 @@ class RequestHelper():
         if request:
             self.request = request
         else:
-            import ckan.common
-            self.request = ckan.common.request
+            from ckan.plugins import toolkit
+            self.request = toolkit.request
 
     def get_path(self):
         """ Get the request path, without query string.
