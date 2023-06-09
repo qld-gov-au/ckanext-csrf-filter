@@ -77,7 +77,7 @@ def configure(config):
         secure_cookies = False
 
     same_site = config.get('ckanext.csrf_filter.same_site', 'None')
-    # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie
+    # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie#samesitesamesite-value
     assert same_site in ['Strict', 'Lax', 'None']
 
     key_fields = ['ckanext.csrf_filter.secret_key',
