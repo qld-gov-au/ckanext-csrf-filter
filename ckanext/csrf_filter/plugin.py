@@ -3,6 +3,7 @@
 """
 
 from logging import getLogger
+from types import GeneratorType
 
 from ckan import plugins
 from ckan.plugins import implements, toolkit
@@ -95,6 +96,10 @@ class CSRFFilterPlugin(plugins.SingletonPlugin):
         def set_csrf_token(response):
             """ Apply a CSRF token to all response bodies.
             """
+            if hasattr(response, 'response') \
+                    and isinstance(response.response, GeneratorType):
+                return response
+
             response.direct_passthrough = False
             anti_csrf.apply_token(response)
             return response
