@@ -97,7 +97,7 @@ class CSRFFilterPlugin(plugins.SingletonPlugin):
             """ Apply a CSRF token to all response bodies.
             """
             if hasattr(response, 'response') \
-            and isinstance(response.response, GeneratorType):
+                    and isinstance(response.response, GeneratorType):
                 return response
 
             response.direct_passthrough = False
