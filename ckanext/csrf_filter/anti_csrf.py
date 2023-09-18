@@ -64,6 +64,7 @@ def configure(config):
     """ Configure global values for the filter.
     """
     global secure_cookies
+    global same_site
     global secret_key
     global token_expiry_age
     global token_renewal_age
@@ -74,6 +75,10 @@ def configure(config):
     else:
         LOG.warning("Site %s is not secure! CSRF tokens may be exposed!", site_url)
         secure_cookies = False
+
+    same_site = config.get('ckanext.csrf_filter.same_site', 'None')
+    # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie#samesitesamesite-value
+    assert same_site in ['Strict', 'Lax', 'None']
 
     key_fields = ['ckanext.csrf_filter.secret_key',
                   'beaker.session.secret',
@@ -311,7 +316,7 @@ def _get_digest(message):
 def _set_response_token_cookie(token, response):
     """ Add a generated token cookie to the HTTP response.
     """
-    response.set_cookie(TOKEN_FIELD_NAME, token, secure=secure_cookies, httponly=True)
+    response.set_cookie(TOKEN_FIELD_NAME, token, secure=secure_cookies, httponly=True, samesite=same_site)
 
 
 def create_response_token():

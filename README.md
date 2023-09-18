@@ -59,6 +59,11 @@ replace the FriendlyForm plugin in `who.ini` with a token-aware version:
     use = ckanext.csrf_filter.token_protected_friendlyform:TokenProtectedFriendlyFormPlugin
     ```
 
+1. Optional: To set token cookie [SameSite attribute](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie#samesitesamesite-value), set ``ckanext.csrf_filter.same_site`` setting in your CKAN config file. By default, the SameSite attribute will be ``None``. Supported values:
+    * Strict
+    * Lax
+    * None
+
 1. Restart CKAN. Eg if you've deployed CKAN with Apache on Ubuntu:
 
     ```
@@ -90,6 +95,9 @@ Optional
     # Tokens older than this will be replaced with new ones on the next response.
     # Default 10 minutes.
     ckanext.csrf_filter.token_rotation_minutes = 10
+
+    # Cookie samesite attribute value. Defaults to None
+    ckanext.csrf_filter.same_site = Strict
 
 
 Testing
