@@ -67,6 +67,7 @@ def configure(config):
     global secret_key
     global token_expiry_age
     global token_renewal_age
+    global exempt_rules
 
     site_url = urlparse(config.get('ckan.site_url', ''))
     if site_url.scheme == 'https':
@@ -90,6 +91,9 @@ def configure(config):
     token_expiry_age = 60 * config.get('ckanext.csrf_filter.token_expiry_minutes', 30)
     token_renewal_age = 60 * config.get('ckanext.csrf_filter.token_renewal_minutes', 10)
 
+    exempt_rules = config.get('ckanext.csrf_filter.exempt_rules', None)
+    if exempt_rules:
+        exempt_rules = [re.compile(rule) for rule in exempt_rules.split()]
 
 # -------------
 # Token parsing
@@ -204,6 +208,10 @@ def _is_request_exempt(request):
     as are API calls (which should instead provide an API key).
     """
     request_helper = RequestHelper(request)
+    if exempt_rules:
+        for rule in exempt_rules:
+            if rule.match(request_helper.get_path()):
+                return True
     return not is_logged_in(request) \
         or API_URL.match(request_helper.get_path()) \
         or request_helper.get_method() in {'GET', 'HEAD', 'OPTIONS'}
