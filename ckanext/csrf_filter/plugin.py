@@ -9,6 +9,7 @@ from ckan import plugins
 from ckan.plugins import implements, toolkit
 
 from ckanext.csrf_filter import anti_csrf
+import ckanext.csrf_filter.helpers as h
 from ckanext.csrf_filter.request_helpers import RequestHelper
 
 
@@ -42,6 +43,7 @@ class CSRFFilterPlugin(plugins.SingletonPlugin):
     """
     implements(plugins.IConfigurable, inherit=True)
     implements(plugins.IAuthenticator, inherit=True)
+    implements(plugins.ITemplateHelpers)
     if not toolkit.check_ckan_version('2.9'):
         implements(plugins.IRoutes, inherit=True)
     if toolkit.check_ckan_version(min_version='2.8.0'):
@@ -62,6 +64,11 @@ class CSRFFilterPlugin(plugins.SingletonPlugin):
         request = RequestHelper()
         request.get_environ()['__no_cache__'] = True
         return None
+
+    # ITemplateHelpers
+
+    def get_helpers(self):
+        return {'csrf_token_field': h.csrf_token_field}
 
     # IRoutes
 
@@ -95,6 +102,9 @@ class CSRFFilterPlugin(plugins.SingletonPlugin):
         @blueprint.after_app_request
         def set_csrf_token(response):
             """ Apply a CSRF token to all response bodies.
+
+            Exclude GeneratorType responses as they are data streams.
+            Modifying the data of the data stream breaks the streaming process.
             """
             if isinstance(getattr(response, 'response', None), GeneratorType):
                 return response
