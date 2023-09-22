@@ -98,7 +98,13 @@ Optional
 
     # Exempts given regex matches from token checks.
     # Default None.
-    ckanext.csrf_filter.exempt_rules = ^/do/not/check/this/path/.*
+    # Must be in a parsable JSON list format.
+    # Strings must be double quoted.
+    # WARNING: this is a very powerful feature. Please make sure that your regex rules are strict.
+    ckanext.csrf_filter.exempt_rules = [
+        "^/do/not/check/this/path/.*",
+        "^/datatables/ajax/.*"
+      ]
 
     # Cookie samesite attribute value. Defaults to None
     ckanext.csrf_filter.same_site = Strict
