@@ -105,6 +105,9 @@ class CSRFFilterPlugin(plugins.SingletonPlugin):
 
             Exclude GeneratorType responses as they are data streams.
             Modifying the data of the data stream breaks the streaming process.
+
+            If a user needs to stream templates, they should use the csrf_token_field
+            helper in their forms inside of their streamed templates.
             """
             if isinstance(getattr(response, 'response', None), GeneratorType):
                 return response
