@@ -1,7 +1,17 @@
-from flask import Response
 from markupsafe import Markup
 from ckanext.csrf_filter.anti_csrf import get_response_token, TOKEN_FIELD_NAME
 
+try:
+    from ckan.common import is_flask_request
+except ImportError:
+    is_flask_request = lambda: True
+
+
 def csrf_token_field():
-    token = get_response_token(Response())
+    if is_flask_request():
+        from flask import Response
+        response = Response()
+    else:
+        from pylons import response
+    token = get_response_token(response)
     return Markup('<input type="hidden" name="{}" value="{}"/>'.format(TOKEN_FIELD_NAME, token))
