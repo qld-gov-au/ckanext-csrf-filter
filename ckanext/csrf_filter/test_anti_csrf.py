@@ -250,7 +250,7 @@ class TestAntiCsrfFilter(unittest.TestCase):
         self.assertEqual(anti_csrf.token_renewal_age, token_renewal_age)
 
     def test_exempt_rules(self):
-        """ Tests that the custom exempt rules pass their conditions
+        """ Tests that requests matching the exemption rules are not checked for tokens
         """
         mock_objects('unit-test')
         path = '/datatables/ajax/331fed84-2c8d-4d2e-b9ee-9ce8cbda3352'
