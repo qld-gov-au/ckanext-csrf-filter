@@ -6,6 +6,7 @@
 import re
 import six
 import unittest
+from json import JSONDecodeError
 
 from ckanext.csrf_filter import anti_csrf
 
@@ -253,6 +254,8 @@ class TestAntiCsrfFilter(unittest.TestCase):
         """ Tests that requests matching the exemption rules are not checked for tokens
         """
         mock_objects('unit-test')
+
+        # tests exempt rule skips token check
         path = '/datatables/ajax/331fed84-2c8d-4d2e-b9ee-9ce8cbda3352'
         request = MockRequest(method='', path=path, cookies={'auth_tkt': 'unit-test'})
         print("Expecting check_csrf to pass for {}".format(path))
@@ -262,6 +265,21 @@ class TestAntiCsrfFilter(unittest.TestCase):
         request = MockRequest(method='', path=path, cookies={'auth_tkt': 'unit-test'})
         print("Expecting check_csrf to fail for {}".format(path))
         self.assertFalse(anti_csrf.check_csrf(request))
+
+        # test multiple regex rules
+        config = {'ckanext.csrf_filter.secret_key': 'secret_key'}
+        config['ckanext.csrf_filter.exempt_rules'] = '["^/datatables/ajax/.*", "/datatables/filtered-download/.*"]'
+        expected = [
+            re.compile('^/+api/.*'),
+            re.compile('^/datatables/ajax/.*'),
+            re.compile('/datatables/filtered-download/.*')
+        ]
+        anti_csrf.configure(config)
+        self.assertEqual(anti_csrf.exempt_rules, expected)
+
+        # test bad JSON string
+        config['ckanext.csrf_filter.exempt_rules'] = '^/datatables/ajax/.*", "/datatables/filtered-download/.*'
+        self.assertRaises(JSONDecodeError, anti_csrf.configure, config)
 
 
 
