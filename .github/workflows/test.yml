@@ -6,10 +6,10 @@ on: [push]
 
 jobs:
   lint:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
         with:
           python-version: '3.x'
       - name: Install requirements
@@ -25,12 +25,12 @@ jobs:
       fail-fast: true
 
     name: CKAN ${{ matrix.ckan-version }}
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     container:
       image: openknowledge/ckan-dev:${{ matrix.ckan-version }}
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Install requirements
       run: |

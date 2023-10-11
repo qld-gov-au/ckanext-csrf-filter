@@ -39,6 +39,7 @@ class CSRFFilterPlugin(plugins.SingletonPlugin):
     """ Inject CSRF tokens into HTML responses,
     and validate them on applicable requests.
     """
+    implements(plugins.IConfigurer)
     implements(plugins.IConfigurable, inherit=True)
     implements(plugins.IAuthenticator, inherit=True)
     if not toolkit.check_ckan_version('2.9'):
@@ -46,6 +47,11 @@ class CSRFFilterPlugin(plugins.SingletonPlugin):
     if toolkit.check_ckan_version(min_version='2.8.0'):
         implements(plugins.IBlueprint, inherit=True)
         implements(plugins.IMiddleware, inherit=True)
+
+    # IConfigurer
+
+    def update_config(self, config_):
+        toolkit.add_template_directory(config_, 'templates')
 
     # IConfigurable
 
