@@ -280,7 +280,7 @@ class TestAntiCsrfFilter(unittest.TestCase):
             re.compile('/datatables/filtered-download/.*')
         ]
         anti_csrf.configure(config)
-        self.assertEqual(anti_csrf.exempt_rules, expected)
+        six.assertCountEqual(self, anti_csrf.exempt_rules, expected)
 
         # test bad JSON string
         config['ckanext.csrf_filter.exempt_rules'] = '^/datatables/ajax/.*", "/datatables/filtered-download/.*'
