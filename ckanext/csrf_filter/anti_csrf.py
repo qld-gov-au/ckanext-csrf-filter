@@ -100,6 +100,7 @@ def configure(config):
     custom_exempt_rules = config.get('ckanext.csrf_filter.exempt_rules', None)
     if custom_exempt_rules:
         for rule in json.loads(custom_exempt_rules):
+            LOG.debug("Adding CSRF exclusion: %s", rule)
             exempt_rules.append(re.compile(rule))
 
 
