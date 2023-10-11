@@ -4,7 +4,8 @@ from ckanext.csrf_filter.anti_csrf import get_response_token, TOKEN_FIELD_NAME
 try:
     from ckan.common import is_flask_request
 except ImportError:
-    is_flask_request = lambda: True
+    def is_flask_request():
+        return True
 
 
 def csrf_token_field():

@@ -282,6 +282,5 @@ class TestAntiCsrfFilter(unittest.TestCase):
         self.assertRaises(JSONDecodeError, anti_csrf.configure, config)
 
 
-
 if __name__ == '__main__':
     unittest.main()
