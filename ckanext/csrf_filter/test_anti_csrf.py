@@ -6,7 +6,12 @@
 import re
 import six
 import unittest
-from json import JSONDecodeError
+
+try:
+    from json import JSONDecodeError
+except ImportError:
+    # Python 2 JSON library raises ValueError instead
+    JSONDecodeError = ValueError
 
 from ckanext.csrf_filter import anti_csrf
 
