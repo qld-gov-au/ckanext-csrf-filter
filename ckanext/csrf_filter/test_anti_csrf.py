@@ -275,12 +275,16 @@ class TestAntiCsrfFilter(unittest.TestCase):
         config = {'ckanext.csrf_filter.secret_key': 'secret_key'}
         config['ckanext.csrf_filter.exempt_rules'] = '["^/datatables/ajax/.*", "/datatables/filtered-download/.*"]'
         expected = [
-            re.compile('^/+api/.*'),
-            re.compile('^/datatables/ajax/.*'),
-            re.compile('/datatables/filtered-download/.*')
+            '^/+api/.*',
+            '^/datatables/ajax/.*',
+            '/datatables/filtered-download/.*'
         ]
         anti_csrf.configure(config)
-        six.assertCountEqual(self, anti_csrf.exempt_rules, expected)
+        # Use custom matching since equivalent patterns won't necessarily
+        # compile to equal objects under all Python versions
+        self.assertEqual(len(anti_csrf.exempt_rules), len(expected))
+        for index in range(len(anti_csrf.exempt_rules)):
+            self.assertEquals(anti_csrf.exempt_rules[index].pattern, expected[index])
 
         # test bad JSON string
         config['ckanext.csrf_filter.exempt_rules'] = '^/datatables/ajax/.*", "/datatables/filtered-download/.*'
