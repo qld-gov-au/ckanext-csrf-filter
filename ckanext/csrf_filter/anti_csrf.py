@@ -11,6 +11,7 @@ Applying the filter to Pylons requires monkey-patching core functions.
 
 import hashlib
 import hmac
+import json
 from logging import getLogger
 import random
 import re
@@ -43,7 +44,6 @@ TOKEN_VALIDATION_PATTERN = re.compile(
 ENCODED_TOKEN_VALIDATION_PATTERN = re.compile(
     r'^[0-9a-z]+![0-9]+/[0-9]+/[-_a-z0-9%+=]+$',
     re.IGNORECASE)
-API_URL = re.compile(r'^/+api/.*')
 LOGIN_URL = re.compile(r'^(/user)?/log(ged_)?in(_generic)?')
 CONFIRM_MODULE_PATTERN = r'data-module=["\']confirm-action["\']'
 CONFIRM_MODULE = re.compile(CONFIRM_MODULE_PATTERN)
@@ -64,9 +64,11 @@ def configure(config):
     """ Configure global values for the filter.
     """
     global secure_cookies
+    global same_site
     global secret_key
     global token_expiry_age
     global token_renewal_age
+    global exempt_rules
 
     site_url = urlparse(config.get('ckan.site_url', ''))
     if site_url.scheme == 'https':
@@ -74,6 +76,10 @@ def configure(config):
     else:
         LOG.warning("Site %s is not secure! CSRF tokens may be exposed!", site_url)
         secure_cookies = False
+
+    same_site = config.get('ckanext.csrf_filter.same_site', 'None')
+    # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie#samesitesamesite-value
+    assert same_site in ['Strict', 'Lax', 'None']
 
     key_fields = ['ckanext.csrf_filter.secret_key',
                   'beaker.session.secret',
@@ -89,6 +95,13 @@ def configure(config):
                          key_fields)
     token_expiry_age = 60 * config.get('ckanext.csrf_filter.token_expiry_minutes', 30)
     token_renewal_age = 60 * config.get('ckanext.csrf_filter.token_renewal_minutes', 10)
+
+    exempt_rules = [re.compile(r'^/+api/.*')]
+    custom_exempt_rules = config.get('ckanext.csrf_filter.exempt_rules', None)
+    if custom_exempt_rules:
+        for rule in json.loads(custom_exempt_rules):
+            LOG.debug("Adding CSRF exclusion: %s", rule)
+            exempt_rules.append(re.compile(rule))
 
 
 # -------------
@@ -204,8 +217,10 @@ def _is_request_exempt(request):
     as are API calls (which should instead provide an API key).
     """
     request_helper = RequestHelper(request)
+    for rule in exempt_rules:
+        if rule.match(request_helper.get_path()):
+            return True
     return not is_logged_in(request) \
-        or API_URL.match(request_helper.get_path()) \
         or request_helper.get_method() in {'GET', 'HEAD', 'OPTIONS'}
 
 
@@ -311,7 +326,7 @@ def _get_digest(message):
 def _set_response_token_cookie(token, response):
     """ Add a generated token cookie to the HTTP response.
     """
-    response.set_cookie(TOKEN_FIELD_NAME, token, secure=secure_cookies, httponly=True)
+    response.set_cookie(TOKEN_FIELD_NAME, token, secure=secure_cookies, httponly=True, samesite=same_site)
 
 
 def create_response_token():
