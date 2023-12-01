@@ -276,6 +276,7 @@ class TestAntiCsrfFilter(unittest.TestCase):
         config['ckanext.csrf_filter.exempt_rules'] = '["^/datatables/ajax/.*", "/datatables/filtered-download/.*"]'
         expected = [
             '^/+api/.*',
+            '^/user/_logout.*',
             '^/datatables/ajax/.*',
             '/datatables/filtered-download/.*'
         ]
