@@ -96,7 +96,7 @@ def configure(config):
     token_expiry_age = 60 * config.get('ckanext.csrf_filter.token_expiry_minutes', 30)
     token_renewal_age = 60 * config.get('ckanext.csrf_filter.token_renewal_minutes', 10)
 
-    exempt_rules = [re.compile(r'^/+api/.*')]
+    exempt_rules = [re.compile(r'^/+api/.*'), re.compile(r'^/user/_logout.*')]
     custom_exempt_rules = config.get('ckanext.csrf_filter.exempt_rules', None)
     if custom_exempt_rules:
         for rule in json.loads(custom_exempt_rules):
