@@ -80,6 +80,9 @@ def configure(config):
     same_site = config.get('ckanext.csrf_filter.same_site', 'None')
     # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie#samesitesamesite-value
     assert same_site in ['Strict', 'Lax', 'None']
+    # workaround for older Werkzeug versions
+    if same_site == 'None':
+        same_site = None
 
     key_fields = ['ckanext.csrf_filter.secret_key',
                   'beaker.session.secret',
