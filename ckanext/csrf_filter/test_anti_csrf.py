@@ -176,7 +176,7 @@ class TestAntiCsrfFilter(unittest.TestCase):
             'HTTP_COOKIE': token_expression,
             'wsgi.url_scheme': 'http',
             'wsgi.input': six.BytesIO(six.ensure_binary(token_expression)),
-            'CONTENT_LENGTH': len(token_expression),
+            'CONTENT_LENGTH': str(len(token_expression)),
             'wsgi.errors': six.BytesIO(),
         }
         request = Request(environ)
