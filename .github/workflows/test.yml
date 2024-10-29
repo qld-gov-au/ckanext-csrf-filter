@@ -1,6 +1,4 @@
 ---
-#based on https://raw.githubusercontent.com/ckan/ckanext-scheming/master/.github/workflows/test.yml
-# alternative https://github.com/ckan/ckan/blob/master/contrib/cookiecutter/ckan_extension/%7B%7Bcookiecutter.project%7D%7D/.github/workflows/test.yml
 name: Tests
 on: [push]
 
@@ -8,8 +6,8 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.x'
       - name: Install requirements
@@ -21,16 +19,16 @@ jobs:
     needs: lint
     strategy:
       matrix:
-        ckan-version: ["2.10", 2.9, 2.9-py2, 2.8]
+        ckan-version: ["2.11", "2.10", 2.9, 2.9-py2, 2.8]
       fail-fast: true
 
     name: CKAN ${{ matrix.ckan-version }}
     runs-on: ubuntu-latest
     container:
-      image: openknowledge/ckan-dev:${{ matrix.ckan-version }}
+      image: ckan/ckan-dev:${{ matrix.ckan-version }}
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Install requirements
       run: |
