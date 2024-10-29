@@ -13,25 +13,26 @@ import ckanext.csrf_filter.helpers as h
 from ckanext.csrf_filter.request_helpers import RequestHelper
 
 
-if toolkit.check_ckan_version('2.8'):
-    from flask import Blueprint, Request
-    from werkzeug.datastructures import MultiDict, ImmutableMultiDict
+from flask import Blueprint, Request
+from werkzeug.datastructures import MultiDict, ImmutableMultiDict
 
-    class MostlyImmutableMultiDict(ImmutableMultiDict):
-        """ Allows a single mutating operation, to delete the CSRF token.
-        """
-        mutable_fields = [anti_csrf.TOKEN_FIELD_NAME]
 
-        def __delitem__(self, key):
-            if key in self.mutable_fields:
-                return MultiDict.__delitem__(self, key)
-            else:
-                return super.__delitem__(key)
+class MostlyImmutableMultiDict(ImmutableMultiDict):
+    """ Allows a single mutating operation, to delete the CSRF token.
+    """
+    mutable_fields = [anti_csrf.TOKEN_FIELD_NAME]
 
-    class CSRFAwareRequest(Request):
-        """ Adjust parameter storage so we can delete CSRF tokens.
-        """
-        parameter_storage_class = MostlyImmutableMultiDict
+    def __delitem__(self, key):
+        if key in self.mutable_fields:
+            return MultiDict.__delitem__(self, key)
+        else:
+            return super.__delitem__(key)
+
+
+class CSRFAwareRequest(Request):
+    """ Adjust parameter storage so we can delete CSRF tokens.
+    """
+    parameter_storage_class = MostlyImmutableMultiDict
 
 
 LOG = getLogger(__name__)
@@ -45,11 +46,8 @@ class CSRFFilterPlugin(plugins.SingletonPlugin):
     implements(plugins.IConfigurable, inherit=True)
     implements(plugins.IAuthenticator, inherit=True)
     implements(plugins.ITemplateHelpers)
-    if not toolkit.check_ckan_version('2.9'):
-        implements(plugins.IRoutes, inherit=True)
-    if toolkit.check_ckan_version(min_version='2.8.0'):
-        implements(plugins.IBlueprint, inherit=True)
-        implements(plugins.IMiddleware, inherit=True)
+    implements(plugins.IBlueprint, inherit=True)
+    implements(plugins.IMiddleware, inherit=True)
 
     # IConfigurer
 
@@ -75,19 +73,6 @@ class CSRFFilterPlugin(plugins.SingletonPlugin):
 
     def get_helpers(self):
         return {'csrf_token_field': h.csrf_token_field}
-
-    # IRoutes
-
-    def after_map(self, route_map):
-        """ Monkey-patch Pylons after routing is set up.
-        """
-        try:
-            from ckanext.csrf_filter import anti_csrf_pylons
-            anti_csrf_pylons.intercept()
-        except Exception:
-            LOG.warn("Unable to load Pylons support. Pylons routes will not be protected.")
-
-        return route_map
 
     # IBlueprint
 
