@@ -5,8 +5,6 @@ www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)_Prevention_Cheat_Sheet
 
 To apply the filter, use 'apply_token' to inject tokens into Flask responses,
 and call 'check_csrf' on all requests to determine whether they are valid.
-
-Applying the filter to Pylons requires monkey-patching core functions.
 """
 
 import hashlib
@@ -403,7 +401,7 @@ def apply_token(response, request=None):
     If a new token is generated, it will be added to 'response' as a cookie.
     """
     try:
-        if not response.charset:
+        if not getattr(response, 'charset', None):
             # Provide default charset
             response.charset = 'utf-8'
         # If the response data can't be decoded from bytes to str

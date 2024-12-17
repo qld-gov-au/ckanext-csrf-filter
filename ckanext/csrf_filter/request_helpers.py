@@ -36,23 +36,17 @@ class RequestHelper():
         """ Retrieve a list of all POST parameters with the specified name
         for the current request.
 
-        This uses 'request.POST' for Pylons and 'request.form' for Flask.
+        This uses 'request.form' for Flask.
         """
-        if hasattr(self.request, 'form'):
-            return self.request.form.getlist(field_name)
-        else:
-            return self.request.POST.getall(field_name)
+        return self.request.form.getlist(field_name)
 
     def get_query_params(self, field_name):
         """ Retrieve a list of all GET parameters with the specified name
         for the current request.
 
-        This uses 'request.GET' for Pylons and 'request.args' for Flask.
+        This uses 'request.args' for Flask.
         """
-        if hasattr(self.request, 'args'):
-            return self.request.args.getlist(field_name)
-        else:
-            return self.request.GET.getall(field_name)
+        return self.request.args.getlist(field_name)
 
     def delete_param(self, field_name):
         """ Remove the parameter with the specified name from the current
