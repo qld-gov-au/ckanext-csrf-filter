@@ -25,39 +25,46 @@ STUB_TOKEN = 'some_token_or_other'
 
 
 html_cases = [
+    # POST form
     {"input": '''<form method="POST">
              Form contents here</form>''',
      "expected": '''<form method="POST"><input type="hidden" name="{}" value="{}"/>
              Form contents here</form>'''
      },
+    # Confirm link
     {"input": '''<a data-module="confirm-action" href="/some/path">
              Click here</a>''',
      "expected": '''<a data-module="confirm-action" href="/some/path?{}={}">
              Click here</a>'''
      },
+    # Confirm link with pre-existing query string
     {"input": '''<a data-module="confirm-action" href="/some/path?foo=baz">
              Click here</a>''',
      "expected": '''<a data-module="confirm-action" href="/some/path?foo=baz&{}={}">
              Click here</a>'''
      },
+    # Confirm link with 'href' before 'data-module'
     {"input": '''<a href="/some/path" data-module="confirm-action">
              Click here</a>''',
      "expected": '''<a href="/some/path?{}={}" data-module="confirm-action">
              Click here</a>'''
      },
+    # HTMX link
     {"input": '''<a hx-post="/some/path">
              Click here</a>''',
-     "expected": '''<a href="/some/path?{}={}">
+     "expected": '''<a hx-post="/some/path?{}={}">
              Click here</a>'''
      },
+    # HTMX link with pre-existing query string
     {"input": '''<a hx-post="/some/path?foo=baz">
              Click here</a>''',
-     "expected": '''<a href="/some/path?foo=baz&{}={}">
+     "expected": '''<a hx-post="/some/path?foo=baz&{}={}">
              Click here</a>'''
      },
+    # HTMX link with other attributes
     {"input": '''<a id="unit-test" hx-post="/some/path" name="foo">
              Click here</a>''',
-     "expected": '''<a id="unit-test" href="/some/path?{}={}" name="foo">
+     "expected": '''<a id="unit-test" hx-post="/some/path?{}={}" name="foo">
              Click here</a>'''
      },
 ]
