@@ -45,6 +45,21 @@ html_cases = [
      "expected": '''<a href="/some/path?{}={}" data-module="confirm-action">
              Click here</a>'''
      },
+    {"input": '''<a hx-post="/some/path">
+             Click here</a>''',
+     "expected": '''<a href="/some/path?{}={}">
+             Click here</a>'''
+     },
+    {"input": '''<a hx-post="/some/path?foo=baz">
+             Click here</a>''',
+     "expected": '''<a href="/some/path?foo=baz&{}={}">
+             Click here</a>'''
+     },
+    {"input": '''<a id="unit-test" hx-post="/some/path" name="foo">
+             Click here</a>''',
+     "expected": '''<a id="unit-test" href="/some/path?{}={}" name="foo">
+             Click here</a>'''
+     },
 ]
 
 

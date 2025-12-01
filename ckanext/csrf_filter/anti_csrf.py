@@ -57,6 +57,11 @@ CONFIRM_LINK_REVERSED = re.compile(r'(<a [^>]*{})(["\'][^>]*{})'.format(
     HREF_URL_PATTERN, CONFIRM_MODULE_PATTERN),
     re.IGNORECASE | re.MULTILINE)
 
+# We also need to edit HTMX links that will be converted to POST requests.
+HTMX_POST_LINK = re.compile(
+    r'(<a [^>]*hx-post=["\']([^"\']+))(["\'])',
+    re.IGNORECASE | re.MULTILINE)
+
 
 def configure(config):
     """ Configure global values for the filter.
@@ -393,6 +398,7 @@ def insert_token(html, token, request=None):
     html = POST_FORM.sub(insert_form_token, six.ensure_text(html))
     html = CONFIRM_LINK.sub(insert_link_token, html)
     html = CONFIRM_LINK_REVERSED.sub(insert_link_token, html)
+    html = HTMX_POST_LINK.sub(insert_link_token, html)
     return html
 
 
