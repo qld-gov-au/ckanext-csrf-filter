@@ -26,7 +26,7 @@ Installation
 
 To install ``ckanext-csrf-filter``:
 
-1. Install CKAN >=2.9.
+1. Install CKAN >=2.10.
 
 1. Activate your CKAN virtual environment, eg:
 
