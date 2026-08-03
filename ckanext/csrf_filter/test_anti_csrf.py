@@ -131,10 +131,10 @@ class TestAntiCsrfFilter(unittest.TestCase):
         ]
 
         print("Testing good token '{}'".format(good_token))
-        self.assertEqual(anti_csrf._read_token_values(good_token), expected_value)
+        assert anti_csrf._read_token_values(good_token) == expected_value
         for bad_token in bad_tokens:
             print("Testing bad token '{}'".format(bad_token))
-            self.assertEqual(anti_csrf._read_token_values(bad_token), {})
+            assert anti_csrf._read_token_values(bad_token) == {}
 
     def test_is_valid_token(self):
         """ Test that tokens are properly validated.
@@ -151,11 +151,11 @@ class TestAntiCsrfFilter(unittest.TestCase):
         ]
 
         print("Testing good token {}".format(good_token))
-        self.assertTrue(anti_csrf.is_valid_token(good_token))
+        assert anti_csrf.is_valid_token(good_token) is True
         for bad_token in bad_tokens:
             print("Testing invalid token '{}'".format(bad_token))
-            self.assertFalse(anti_csrf.is_valid_token(bad_token))
-            self.assertFalse(anti_csrf.is_soft_expired(bad_token))
+            assert anti_csrf.is_valid_token(bad_token) is False
+            assert anti_csrf.is_soft_expired(bad_token) is False
 
     def test_soft_token_expiry(self):
         """ Test that tokens are rotated when they are getting old.
@@ -163,7 +163,7 @@ class TestAntiCsrfFilter(unittest.TestCase):
         """
         mock_objects('unit-test')
         good_token = anti_csrf.create_response_token()
-        self.assertFalse(anti_csrf.is_soft_expired(good_token))
+        assert anti_csrf.is_soft_expired(good_token) is False
 
         import time
         print("Generating old token at {}".format(time.time()))
@@ -171,7 +171,7 @@ class TestAntiCsrfFilter(unittest.TestCase):
         old_token = "{}!{}".format(anti_csrf._get_digest(old_values), old_values)
 
         print("Testing soft-expired token {}".format(old_token))
-        self.assertTrue(anti_csrf.is_soft_expired(old_token))
+        assert anti_csrf.is_soft_expired(old_token) is True
 
     def test_username_with_slash(self):
         """ Test that usernames containing slashes are handled robustly.
@@ -182,9 +182,9 @@ class TestAntiCsrfFilter(unittest.TestCase):
         good_token = anti_csrf.create_response_token()
 
         print("Testing valid username token '{}'".format(good_token))
-        self.assertTrue(anti_csrf.is_valid_token(good_token))
+        assert anti_csrf.is_valid_token(good_token) is True
         print("Testing wrong user token '{}'".format(bad_token))
-        self.assertFalse(anti_csrf.is_valid_token(bad_token))
+        assert anti_csrf.is_valid_token(bad_token) is False
 
         # test with real Request object
         token_expression = 'token=' + good_token
@@ -202,7 +202,7 @@ class TestAntiCsrfFilter(unittest.TestCase):
             'wsgi.errors': six.BytesIO(),
         }
         request = Request(environ)
-        self.assertTrue(anti_csrf.check_csrf(request))
+        assert anti_csrf.check_csrf(request) is True
 
     def test_inject_token(self):
         """ Test that tokens are correctly injected into HTML when logged in.
@@ -211,9 +211,10 @@ class TestAntiCsrfFilter(unittest.TestCase):
         for case in html_cases:
             injected_html = anti_csrf.insert_token(case['input'], STUB_TOKEN)
             print("Expecting exactly one token in {}".format(injected_html))
-            self.assertEqual(injected_html,
-                             case['expected'].format(anti_csrf.TOKEN_FIELD_NAME, STUB_TOKEN))
-            self.assertEqual(injected_html, anti_csrf.insert_token(injected_html, STUB_TOKEN))
+            assert injected_html == \
+                case['expected'].format(anti_csrf.TOKEN_FIELD_NAME, STUB_TOKEN)
+            # injecting twice should do nothing
+            assert injected_html == anti_csrf.insert_token(injected_html, STUB_TOKEN)
 
     def test_inject_token_on_login_form(self):
         """ Test that tokens are correctly injected into login form.
@@ -223,9 +224,10 @@ class TestAntiCsrfFilter(unittest.TestCase):
         for case in html_cases:
             injected_html = anti_csrf.insert_token(case['input'], STUB_TOKEN, request=request)
             print("Expecting exactly one token in {}".format(injected_html))
-            self.assertEqual(injected_html,
-                             case['expected'].format(anti_csrf.TOKEN_FIELD_NAME, STUB_TOKEN))
-            self.assertEqual(injected_html, anti_csrf.insert_token(injected_html, STUB_TOKEN, request=request))
+            assert injected_html == \
+                case['expected'].format(anti_csrf.TOKEN_FIELD_NAME, STUB_TOKEN)
+            # injecting twice should do nothing
+            assert injected_html == anti_csrf.insert_token(injected_html, STUB_TOKEN, request=request)
 
     def test_not_inject_token_when_logged_out(self):
         """ Test that tokens are not injected when not logged in.
@@ -235,7 +237,7 @@ class TestAntiCsrfFilter(unittest.TestCase):
         for case in html_cases:
             injected_html = anti_csrf.insert_token(case['input'], STUB_TOKEN, request=request)
             print("Expecting no token in {}".format(injected_html))
-            self.assertEqual(injected_html, case['input'])
+            assert injected_html == case['input']
 
     def test_required_config(self):
         """ Tests that the filter is configured correctly from inputs
@@ -272,10 +274,10 @@ class TestAntiCsrfFilter(unittest.TestCase):
                       token_expiry_age=1800, token_renewal_age=600):
         """ Check that the config values of the CSRF filter are as expected.
         """
-        self.assertEqual(anti_csrf.secret_key, secret_key)
-        self.assertEqual(anti_csrf.secure_cookies, secure_cookies)
-        self.assertEqual(anti_csrf.token_expiry_age, token_expiry_age)
-        self.assertEqual(anti_csrf.token_renewal_age, token_renewal_age)
+        assert anti_csrf.secret_key == secret_key
+        assert anti_csrf.secure_cookies == secure_cookies
+        assert anti_csrf.token_expiry_age == token_expiry_age
+        assert anti_csrf.token_renewal_age == token_renewal_age
 
     def test_exempt_rules(self):
         """ Tests that requests matching the exemption rules are not checked for tokens
@@ -286,12 +288,12 @@ class TestAntiCsrfFilter(unittest.TestCase):
         path = '/datatables/ajax/331fed84-2c8d-4d2e-b9ee-9ce8cbda3352'
         request = MockRequest(method='', path=path, cookies={'auth_tkt': 'unit-test'})
         print("Expecting check_csrf to pass for {}".format(path))
-        self.assertTrue(anti_csrf.check_csrf(request))
+        assert anti_csrf.check_csrf(request) is True
 
         path = '/datatables/filtered-download/331fed84-2c8d-4d2e-b9ee-9ce8cbda3352'
         request = MockRequest(method='', path=path, cookies={'auth_tkt': 'unit-test'})
         print("Expecting check_csrf to fail for {}".format(path))
-        self.assertFalse(anti_csrf.check_csrf(request))
+        assert anti_csrf.check_csrf(request) is False
 
         # test multiple regex rules
         config = {'ckanext.csrf_filter.secret_key': 'secret_key'}
@@ -305,9 +307,9 @@ class TestAntiCsrfFilter(unittest.TestCase):
         anti_csrf.configure(config)
         # Use custom matching since equivalent patterns won't necessarily
         # compile to equal objects under all Python versions
-        self.assertEqual(len(anti_csrf.exempt_rules), len(expected))
+        assert len(anti_csrf.exempt_rules) == len(expected)
         for index in range(len(anti_csrf.exempt_rules)):
-            self.assertEquals(anti_csrf.exempt_rules[index].pattern, expected[index])
+            assert anti_csrf.exempt_rules[index].pattern == expected[index]
 
         # test bad JSON string
         config['ckanext.csrf_filter.exempt_rules'] = '^/datatables/ajax/.*", "/datatables/filtered-download/.*'

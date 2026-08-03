@@ -26,7 +26,7 @@ Installation
 
 To install ``ckanext-csrf-filter``:
 
-1. Install CKAN >=2.9.
+1. Install CKAN >=2.10.
 
 1. Activate your CKAN virtual environment, eg:
 
@@ -50,8 +50,8 @@ To install ``ckanext-csrf-filter``:
 your CKAN config file (by default the config file is located at
 ``/etc/ckan/default/production.ini``).
 
-1. Optional: To prevent [Login CSRF](https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html#login-csrf),
-replace the FriendlyForm plugin in `who.ini` with a token-aware version:
+1. Optional: To prevent [Login CSRF](https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html#login-csrf)
+on CKAN versions before 2.11, replace the FriendlyForm plugin in `who.ini` with a token-aware version:
 
     ```
     [plugin:friendlyform]
@@ -59,7 +59,9 @@ replace the FriendlyForm plugin in `who.ini` with a token-aware version:
     use = ckanext.csrf_filter.token_protected_friendlyform:TokenProtectedFriendlyFormPlugin
     ```
 
-1. Optional: To set token cookie [SameSite attribute](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie#samesitesamesite-value), set ``ckanext.csrf_filter.same_site`` setting in your CKAN config file. By default, the SameSite attribute will be ``None``. Supported values:
+1. Optional: To set token cookie [SameSite attribute](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie#samesitesamesite-value),
+set ``ckanext.csrf_filter.same_site`` setting in your CKAN config file.
+By default, the SameSite attribute will be ``None``. Supported values:
     * Strict
     * Lax
     * None
@@ -87,20 +89,21 @@ never in a production environment.
 Optional
 --------
 
-    # Maximum age of a token cookie, in minutes.
+    # Hard-maximum age of a token cookie, in minutes.
     # Tokens older than this will be rejected.
     # Default 30 minutes.
     ckanext.csrf_filter.token_expiry_minutes = 30
 
+    # Soft-maximum age of a token cookie, in minutes.
     # Tokens older than this will be replaced with new ones on the next response.
     # Default 10 minutes.
     ckanext.csrf_filter.token_rotation_minutes = 10
 
-    # Exempts given regex matches from token checks.
+    # URL paths matching the given regular expressions are exempt from token checks.
     # Default None.
     # Must be in a parsable JSON list format.
     # Strings must be double quoted.
-    # WARNING: this is a very powerful feature. Please make sure that your regex rules are strict.
+    # WARNING: This removes CSRF protection. Please make sure that your regex rules are strict.
     ckanext.csrf_filter.exempt_rules = [
         "^/do/not/check/this/path/.*",
         "^/datatables/ajax/.*"
