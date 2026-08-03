@@ -1,0 +1,27 @@
+version: 1
+groups:
+  - annotation: ckanext-csrf-filter
+    options:
+      - key: ckanext.csrf_filter.same_site
+        default: None
+        editable: true
+        description: Cookie config - 'Strict', 'Lax', 'None'
+
+      - key: ckanext.csrf_filter.token_expiry_minutes
+        default: 30
+        editable: true
+        type: int
+        description: Token Expiry Age
+
+      - key: ckanext.csrf_filter.token_renewal_minutes
+        default: 10
+        editable: true
+        type: int
+        description: Rotation of active csrf tokens to keep fresh
+
+      - key: ckanext.csrf_filter.exempt_rules
+        editable: true
+        description: |
+          A list of regex rules of exempt POST urls outside of ^/+api/.*','^/user/_logout.*' 
+          Is comma delimited 
+          i.e.  ckanext.csrf_filter.exempt_rules = [ "^/datatables/ajax/.*", "^/user/passkey/.*" ]
