@@ -1,0 +1,41 @@
+[build-system]
+requires = [ "setuptools",]
+
+[project]
+name = "ckanext-csrf-filter"
+version = "2.0.3"
+description = "Use cryptographically strong tokens to protect against Cross-Site Request Forgery"
+classifiers = [ "Development Status :: 5 - Production/Stable",
+    "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",]
+keywords = [ "CKAN", "extension", "CSRF", "XSRF"]
+dependencies = [
+    "six>=1.12.0",
+]
+authors = [
+    {name = "ThrawnCA", email = "carl.antuar@smartservice.qld.gov.au"},
+    {name = "Queensland Online", email = "qol.development@smartservice.qld.gov.au"},
+    {name = "William Dutton (duttonw)", email = "william.dutton@qld.gov.au"},
+#    {name = "", email = ""},
+]
+maintainers = [
+    {name = "ThrawnCA", email = "carl.antuar@smartservice.qld.gov.au"},
+    {name = "Queensland Online", email = "qol.development@smartservice.qld.gov.au"},
+    {name = "William Dutton (duttonw)", email = "william.dutton@qld.gov.au"},
+]
+
+[project.readme]
+file = "README.md"
+content-type = "text/markdown"
+
+[project.license]
+text = "AGPL"
+
+[project.urls]
+Homepage = "https://github.com/qld-gov-au/ckanext-csrf-filter"
+
+[project.entry-points."ckan.plugins"]
+csrf_filter = "ckanext.csrf_filter.plugin:CSRFFilterPlugin"
