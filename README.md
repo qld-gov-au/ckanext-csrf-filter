@@ -66,6 +66,12 @@ By default, the SameSite attribute will be ``None``. Supported values:
     * Lax
     * None
 
+1. Optional: A list of regex rules of exempt POST urls outside ^/+api/.*','^/user/_logout.*'. Is comma delimited.
+    
+    ```python
+    ckanext.csrf_filter.exempt_rules = [ "^/datatables/ajax/.*", "^/plugin_x/.*" ]
+    ```
+
 1. Restart CKAN. Eg if you've deployed CKAN with Apache on Ubuntu:
 
     ```
