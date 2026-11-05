@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ckanext-csrf-filter"
+version = "2.0.3"
+description = "Protect against CSRF attacks"
+requires-python = ">=3.7"
+
+dependencies = [
+    "six>=1.12.0"
+]
+
+authors = [
+    {name = "Queensland Online", email = "qol.development@smartservice.qld.gov.au"},
+]
+
+[project.readme]
+file = "README.md"
+content-type = "text/markdown"
+[project.entry-points."ckan.plugins"]
+csrf_filter = "ckanext.csrf_filter.plugin:CSRFFilterPlugin"
+
+[tool.setuptools]
+include-package-data = true
+zip-safe = false
+
+[tool.setuptools.packages.find]
+exclude = ["ez_setup", "examples", "tests*"]
