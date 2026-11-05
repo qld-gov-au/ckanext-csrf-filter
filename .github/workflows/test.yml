@@ -1,13 +1,23 @@
 ---
 name: Tests
-on: [push]
+on:
+  push:
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch:
+  workflow_call:
+
+permissions:
+  contents: read
 
 jobs:
   lint:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-python@v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
         with:
           python-version: '3.x'
       - name: Install requirements
@@ -33,13 +43,12 @@ jobs:
       options: --user root
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         continue-on-error: ${{ matrix.experimental }}
 
       - name: Install requirements
         continue-on-error: ${{ matrix.experimental }}
         run: |
-          pip install -r requirements.txt
           pip install -e .
 
       - name: Run all tests

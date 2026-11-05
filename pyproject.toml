@@ -1,5 +1,6 @@
 [build-system]
-requires = [ "setuptools",]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "ckanext-csrf-filter"
@@ -12,9 +13,11 @@ classifiers = [ "Development Status :: 5 - Production/Stable",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",]
 keywords = [ "CKAN", "extension", "CSRF", "XSRF"]
+requires-python = ">=3.7"
 dependencies = [
     "six>=1.12.0",
 ]
+
 authors = [
     {name = "ThrawnCA", email = "carl.antuar@smartservice.qld.gov.au"},
     {name = "Queensland Online", email = "qol.development@smartservice.qld.gov.au"},
@@ -39,3 +42,10 @@ Homepage = "https://github.com/qld-gov-au/ckanext-csrf-filter"
 
 [project.entry-points."ckan.plugins"]
 csrf_filter = "ckanext.csrf_filter.plugin:CSRFFilterPlugin"
+
+[tool.setuptools]
+include-package-data = true
+zip-safe = false
+
+[tool.setuptools.packages.find]
+exclude = ["ez_setup", "examples", "tests*"]
